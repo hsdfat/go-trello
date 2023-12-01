@@ -23,21 +23,22 @@ func GetInstance() *TrelloClient {
 
 // GetBoardInfo returns board information include board, members, actions of members
 func GetBoardInfo(id string) error {
-	board, err := GetInstance().Client.GetBoard(id)
+	instance := GetInstance()
+	board, err := instance.Client.GetBoard(id)
 	if err != nil {
 		return err
 	}
 	logger.Debugln("Get board:", board.Name)
-	GetInstance().CBoard = board
-	members, err := GetInstance().GetMembersInBoard()
+	instance.CBoard = board
+	members, err := instance.GetMembersInBoard()
 	if err != nil {
 		return err
 	}
-	GetInstance().Members = members
+	instance.Members = members
 	logger.Debugln("Get members")
 	for _, member := range members {
 		logger.Debugln(member.Email, member.FullName)
-		action, err := GetInstance().GetMemberActions(member.ID)
+		action, err := instance.GetMemberActions(member.ID, trello.Defaults())
 		if err != nil {
 			return err
 		}
@@ -47,5 +48,21 @@ func GetBoardInfo(id string) error {
 		}
 	}
 
+    // Get cards in board
+	cards, err := instance.GetCardsInBoard(id)
+	if err!= nil {
+        return err
+    }
+	instance.Cards = cards
+	logger.Debugln("Get cards", len(cards))
+    instance.FilterTasks(instance.Cards)
+
+	list, err := instance.GetLists()
+	if err!= nil {
+        return err
+    }
+	logger.Debugln("Get List", len(list))
+	instance.StaticList()
+	
 	return nil
 }

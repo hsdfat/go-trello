@@ -15,11 +15,14 @@ func (c *TrelloClient) GetMembersInBoard() (members []*trello.Member, err error)
 	if err != nil {
 		return nil, err
 	}
+	for _, m := range c.Members {
+		m.SetClient(c.Client)
+	}
 	return c.Members, nil
 }
 
 // GetMemberCard returns a list of actions of the member
-func (c *TrelloClient) GetMemberActions(id string) (action []*trello.Action, err error) {
+func (c *TrelloClient) GetMemberActions(id string, args trello.Arguments) (action []*trello.Action, err error) {
 	if c.CBoard == nil {
         return nil, fmt.Errorf("no board specified, get board first")
     }
@@ -28,18 +31,42 @@ func (c *TrelloClient) GetMemberActions(id string) (action []*trello.Action, err
 	if c.Members == nil || len(c.Members) == 0 {
 		return nil, fmt.Errorf("no members specified, get board first")
 	}
+	
+	if ValidateMember(id) {
+		action := []*trello.Action{}
+		err = c.Client.Get(fmt.Sprintf("member/%v/actions", id), args, &action)
+		if err!= nil {
+			return nil, err
+		}
 
-	for _, member := range c.Members {
-		if member.ID == id {
-			action := []*trello.Action{}
-            err = c.Client.Get(fmt.Sprintf("member/%v/actions", member.ID), trello.Defaults(), &action)
-            if err!= nil {
-                return nil, err
-            }
-
-            return action, nil
-        }
+		return action, nil
 	}
-	return nil, fmt.Errorf("no actions specified, get board first")
+	return nil, fmt.Errorf("no valid member, check board first")
 }
 
+// ValidateMember checks if member exists in board
+func ValidateMember(id string) (bool) {
+	if c.Members == nil || len(c.Members) == 0 {
+        return false
+    }
+
+    for _, member := range c.Members {
+        if member.ID == id {
+            return true
+        }
+    }
+    return false
+}
+
+// FilterCardByMember gets cards list by member
+func FilterCardByMember(id string) (cards []*trello.Card, err error) {
+	if c.CBoard == nil {
+		return nil, fmt.Errorf("no specified board, check board first")
+	}
+
+	if !ValidateMember(id) {
+		return nil, fmt.Errorf("no valid member")
+	}
+	
+	return
+}

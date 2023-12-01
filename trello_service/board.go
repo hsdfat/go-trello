@@ -9,4 +9,5 @@ func (c *TrelloClient) GetBoard(id string) {
 	if err != nil {
 		logger.Errorln("Get board err")
 	}
+	c.CBoard.SetClient(c.Client)
 }
