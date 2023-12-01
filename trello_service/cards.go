@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-trello/logger"
 	"regexp"
+	"strconv"
 
 	"github.com/adlio/trello"
 )
@@ -27,14 +28,19 @@ func (c *TrelloClient) GetCardsInBoard(id string) (cards []*trello.Card, err err
 }
 
 // FilterTasks gets tasks from a list of cards
-func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*trello.Card, err error) {
+func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err error) {
 	if c == nil || c.CBoard == nil {
 		return nil, fmt.Errorf("no board specified, get board first")
 
 	}
 	for _, card := range cards {
-		if ValidateTaskName(card.Name) {
-			tasks = append(tasks, card)
+		ok, hour := ValidateTaskName(card.Name) 
+		if ok {
+			task := &Task{
+				Card: card,
+				Hour: hour,
+			}
+			tasks = append(tasks, task)
 		}
 	}
 	logger.Debugln("Number of tasks", len(tasks))
@@ -42,23 +48,23 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*trello.Card, 
 }
 
 // StatisticTask gets tasks by members
-func (c *TrelloClient) StatisticTask(tasks []*trello.Card) (err error) {
+func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 	if c == nil || c.CBoard == nil {
 		return fmt.Errorf("no board specified, get board first")
 
 	}
 	for _, task := range tasks {
-		if task.IDMembers != nil && len(task.IDMembers) > 0 {
-			for _, member := range task.IDMembers {
+		if task.Card.IDMembers != nil && len(task.Card.IDMembers) > 0 {
+			for _, member := range task.Card.IDMembers {
 				if ValidateMember(member) {
-					logger.Debugln("found member")
 					stat, ok := c.MemberStatistics[member]
 					if ok {
 						stat.NTasks++
+						stat.NHours = stat.NHours + task.Hour
 						stat.TotalTasks = append(stat.TotalTasks, task)
-						logger.Debugln(task.IDList, c.DoneList)
-						if task.IDList == c.DoneList {
+						if task.Card.IDList == c.DoneList {
 							stat.NDoneTasks++
+							stat.NDoneHours = stat.NDoneHours + task.Hour
 						}
 					}
 				}
@@ -69,14 +75,27 @@ func (c *TrelloClient) StatisticTask(tasks []*trello.Card) (err error) {
 }
 
 // ValidateTasksName validates card name is task type or not
-func ValidateTaskName(name string) bool {
+func ValidateTaskName(name string) (bool, int) {
 	re := regexp.MustCompile(TASK_NAME_PATTERN)
-	return re.MatchString(name)
+	if !re.MatchString(name) {
+		return false, 0
+	}
+	matches := re.FindStringSubmatch(name)
+	fmt.Println(matches)
+	if len(matches) < 3 {
+		return true, 0
+	}
+	timeValue := matches[2]
+	timeValueInt, err := strconv.Atoi(timeValue)
+	if err!= nil {
+        return true, 0
+    }
+	return true, timeValueInt
 }
 
 // PrintMemberStatistics prinses the member statistics
 func (c *TrelloClient) PrintMemberStatistics() {
-	for memberId, stat := range c.MemberStatistics {
-		logger.Debugln("member: ", memberId, "-", stat.Name, "stat [done/total]: ", stat.NDoneTasks, "/", stat.NTasks)
+	for _, stat := range c.MemberStatistics {
+		logger.Debugln("member: ", stat.Name, "\ttask [done/total]: ", stat.NDoneTasks, "/", stat.NTasks, "\tHour [done/total]: ", stat.NDoneHours, "/", stat.NHours)
 	}
 }

@@ -27,7 +27,7 @@ type TrelloClient struct {
 
 type MemberStatistics struct {
 	Name       string
-	TotalTasks []*trello.Card
+	TotalTasks []*Task
 	NTasks     int
 	NHours     int
 	NDoneTasks int
@@ -52,6 +52,11 @@ type Board struct {
 	CardsCompleted  uint
 	PointsCompleted float64
 	CardProgress    []CardProgress
+}
+
+type Task struct {
+	Card *trello.Card
+	Hour int
 }
 
 // CardProgress represents the progress of a card.
