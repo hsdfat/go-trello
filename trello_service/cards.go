@@ -66,6 +66,10 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 							stat.NDoneTasks++
 							stat.NDoneHours = stat.NDoneHours + task.Hour
 						}
+						if !c.CheckCardInSkipList(task.Card) {
+							stat.NProgressTasks ++
+							stat.NProgressHours = stat.NProgressHours + task.Hour
+						}
 					}
 				}
 			}
@@ -96,6 +100,17 @@ func ValidateTaskName(name string) (bool, int) {
 // PrintMemberStatistics prinses the member statistics
 func (c *TrelloClient) PrintMemberStatistics() {
 	for _, stat := range c.MemberStatistics {
-		logger.Debugln("member: ", stat.Name, "\ttask [done/total]: ", stat.NDoneTasks, "/", stat.NTasks, "\tHour [done/total]: ", stat.NDoneHours, "/", stat.NHours)
+		logger.Debugln("member: ", stat.Name, "\ttask [done/progress/total]: ", stat.NDoneTasks,"/", stat.NProgressTasks, "/", stat.NTasks,
+		 "\tHour [done/progress/total]: ", stat.NDoneHours, "/", stat.NProgressHours, "/", stat.NHours)
 	}
+}
+
+// CheckCardInSkipList returns true if card in the skip list
+func (c *TrelloClient) CheckCardInSkipList(card *trello.Card) bool {
+	for _, skipList := range c.SkipLists {
+		if card.IDList == skipList {
+			return true
+		}
+	}
+	return false
 }

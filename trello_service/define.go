@@ -16,6 +16,7 @@ type TrelloClient struct {
 	CBoard  *trello.Board
 	Members []*trello.Member
 	Lists   []*trello.List
+	Actions []*trello.Action
 
 	Cards []*trello.Card
 	Label []*trello.Label
@@ -26,12 +27,14 @@ type TrelloClient struct {
 }
 
 type MemberStatistics struct {
-	Name       string
-	TotalTasks []*Task
-	NTasks     int
-	NHours     int
-	NDoneTasks int
-	NDoneHours int
+	Name           string
+	TotalTasks     []*Task
+	NTasks         int
+	NHours         int
+	NProgressTasks int
+	NProgressHours int
+	NDoneTasks     int
+	NDoneHours     int
 }
 
 type cardResult struct {
