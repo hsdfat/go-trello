@@ -2,6 +2,7 @@ package trello_service
 
 import (
 	"fmt"
+	"go-trello/logger"
 
 	"github.com/adlio/trello"
 )
@@ -15,8 +16,13 @@ func (c *TrelloClient) GetMembersInBoard() (members []*trello.Member, err error)
 	if err != nil {
 		return nil, err
 	}
+	c.MemberStatistics = make(map[string]*MemberStatistics)
+	logger.Debugln("Init members statistics")
 	for _, m := range c.Members {
 		m.SetClient(c.Client)
+		c.MemberStatistics[m.ID] = &MemberStatistics{
+			Name: m.Username,
+		}
 	}
 	return c.Members, nil
 }

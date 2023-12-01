@@ -2,7 +2,7 @@ trello:
     apiKey: 9963e20049407ecc2cdcb5baa626e317
     token: ATTA72a0bf1a5d9627c8aebcc307740a8c540899f5d70671a59a7cfcbbd65c7178be6A3EA5B3
     refreshRate: 30 # Minutes
-    boardId: nmucrm9n
+    boardId: MlXFzNu9
 http:
     port: 8080
     baseURL: http://localhost:8080/ # With trailing slash

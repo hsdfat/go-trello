@@ -2,6 +2,7 @@ package trello_service
 
 import (
 	"fmt"
+	"go-trello/logger"
 	"strings"
 
 	"github.com/adlio/trello"
@@ -23,18 +24,19 @@ func (c *TrelloClient) GetLists() (lists []*trello.List, err error) {
 	for _, list := range lists {
 		list.SetClient(c.Client)
 	}
-
+	c.Lists = lists
 	return
 }
 
-// StaticList returns done list id and skip lists
-func (c *TrelloClient) StaticList() (doneList string, skipList []string, err error) {
+// StatisticList returns done list id and skip lists
+func (c *TrelloClient) StatisticList() (doneList string, skipList []string, err error) {
 	// Check board existence
 	if c == nil || c.CBoard == nil {
 		return "", nil, fmt.Errorf("no board specified, cannot get lists")
 	}
+	logger.Debugln("Done list", doneList)
 
-	lists := c.CBoard.Lists
+	lists := c.Lists
 	if len(lists) == 0 {
 		return "", nil, fmt.Errorf("no lists found")
 	}

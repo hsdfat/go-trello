@@ -12,23 +12,26 @@ import (
 )
 
 type TrelloClient struct {
-	Client           *trello.Client
-	CBoard           *trello.Board
-	Members          []*trello.Member
-	Lists            []*trello.List
+	Client  *trello.Client
+	CBoard  *trello.Board
+	Members []*trello.Member
+	Lists   []*trello.List
 
-	Cards            []*trello.Card
-	Label            []*trello.Label
-	
-	DoneList string
-	SkipLists []string
-	MemberStatistics map[string]MemberStatistics
+	Cards []*trello.Card
+	Label []*trello.Label
+
+	DoneList         string
+	SkipLists        []string
+	MemberStatistics map[string]*MemberStatistics
 }
 
 type MemberStatistics struct {
+	Name       string
 	TotalTasks []*trello.Card
-	NTask      int
-	NDoneTask  int
+	NTasks     int
+	NHours     int
+	NDoneTasks int
+	NDoneHours int
 }
 
 type cardResult struct {

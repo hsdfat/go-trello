@@ -41,30 +41,42 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*trello.Card, 
 	return tasks, err
 }
 
-// FilterMemberTasks gets tasks by members
-func (c *TrelloClient) FilterMemberTasks(tasks []*trello.Card) (err error) {
+// StatisticTask gets tasks by members
+func (c *TrelloClient) StatisticTask(tasks []*trello.Card) (err error) {
 	if c == nil || c.CBoard == nil {
-        return fmt.Errorf("no board specified, get board first")
+		return fmt.Errorf("no board specified, get board first")
 
-    }
-    for _, task := range tasks {
-        if task.Members != nil && len(task.Members) > 0 {
-			for _, member := range task.Members {
-                if ValidateMember(member.ID) {
-					stat, ok := c.MemberStatistics[member.ID]
+	}
+	for _, task := range tasks {
+		if task.IDMembers != nil && len(task.IDMembers) > 0 {
+			for _, member := range task.IDMembers {
+				if ValidateMember(member) {
+					logger.Debugln("found member")
+					stat, ok := c.MemberStatistics[member]
 					if ok {
-						stat.NTask++
-											
+						stat.NTasks++
+						stat.TotalTasks = append(stat.TotalTasks, task)
+						logger.Debugln(task.IDList, c.DoneList)
+						if task.IDList == c.DoneList {
+							stat.NDoneTasks++
+						}
 					}
-                }
-            }
+				}
+			}
 		}
-    }
-    return err
+	}
+	return err
 }
 
 // ValidateTasksName validates card name is task type or not
 func ValidateTaskName(name string) bool {
 	re := regexp.MustCompile(TASK_NAME_PATTERN)
 	return re.MatchString(name)
+}
+
+// PrintMemberStatistics prinses the member statistics
+func (c *TrelloClient) PrintMemberStatistics() {
+	for memberId, stat := range c.MemberStatistics {
+		logger.Debugln("member: ", memberId, "-", stat.Name, "stat [done/total]: ", stat.NDoneTasks, "/", stat.NTasks)
+	}
 }

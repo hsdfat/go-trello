@@ -30,23 +30,20 @@ func GetBoardInfo(id string) error {
 	}
 	logger.Debugln("Get board:", board.Name)
 	instance.CBoard = board
+
+	list, err := instance.GetLists()
+	if err!= nil {
+        return err
+    }
+	logger.Debugln("Get List", len(list))
+	instance.StatisticList()
+
 	members, err := instance.GetMembersInBoard()
 	if err != nil {
 		return err
 	}
 	instance.Members = members
 	logger.Debugln("Get members")
-	for _, member := range members {
-		logger.Debugln(member.Email, member.FullName)
-		action, err := instance.GetMemberActions(member.ID, trello.Defaults())
-		if err != nil {
-			return err
-		}
-		logger.Debugln("Get actions")
-		for _, action := range action {
-			logger.Debugln("Action:", action.Type)
-		}
-	}
 
     // Get cards in board
 	cards, err := instance.GetCardsInBoard(id)
@@ -55,14 +52,16 @@ func GetBoardInfo(id string) error {
     }
 	instance.Cards = cards
 	logger.Debugln("Get cards", len(cards))
-    instance.FilterTasks(instance.Cards)
+    tasks, err := instance.FilterTasks(instance.Cards)
+	if err != nil {
+		logger.Errorln(err)
+	}
 
-	list, err := instance.GetLists()
+	// Statistics members
+	err = instance.StatisticTask(tasks)
 	if err!= nil {
-        return err
+        logger.Errorln(err)
     }
-	logger.Debugln("Get List", len(list))
-	instance.StaticList()
-	
+	instance.PrintMemberStatistics()
 	return nil
 }
