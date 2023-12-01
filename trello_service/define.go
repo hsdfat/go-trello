@@ -4,11 +4,18 @@ import (
 	"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/adlio/trello"
 	"github.com/spf13/viper"
 )
+
+type TrelloClient struct {
+	Client *trello.Client
+	CBoard *trello.Board
+	Members []*trello.Member
+}
 
 type cardResult struct {
 	Error       error
@@ -77,7 +84,7 @@ func Run(boardID string) {
 		return
 	}
 	log.Printf("Board name: %s", board.Name)
-	lastListID, err := getLastList(board)
+	lastListID, err := getDoneList(board)
 	if err != nil {
 		log.Printf("Couldn't fetch last list: %s", err)
 	}
@@ -115,16 +122,16 @@ func Run(boardID string) {
 	log.Printf("Total points: %f/%f", boardEntity.PointsCompleted, boardEntity.Points)
 }
 
-func getLastList(board *trello.Board) (string, error) {
-	var highestPos float32
+func getDoneList(board *trello.Board) (string, error) {
 	var listID string
 	lists, err := board.GetLists(trello.Defaults())
 	if err != nil {
 		return "", err
 	}
 	for _, list := range lists {
-		if list.Pos > highestPos {
+		if strings.Contains(list.Name, "Done") {
 			listID = list.ID
+			break
 		}
 	}
 	return listID, nil
