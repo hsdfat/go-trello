@@ -11,11 +11,11 @@ import (
 // GetLists returns a list of boards
 func (c *TrelloClient) GetLists() (lists []*trello.List, err error) {
 	// Check board existence
-	if c == nil || c.CBoard == nil {
+	if c == nil || c.Board == nil {
 		return nil, fmt.Errorf("no board specified, cannot get lists")
 	}
 
-	lists, err = c.CBoard.GetLists(trello.Defaults())
+	lists, err = c.Board.GetLists(trello.Defaults())
 
 	if err != nil {
 		return nil, err
@@ -23,15 +23,16 @@ func (c *TrelloClient) GetLists() (lists []*trello.List, err error) {
 
 	for _, list := range lists {
 		list.SetClient(c.Client)
+		c.Lists[list.ID] = list
 	}
-	c.Lists = lists
+	
 	return
 }
 
 // StatisticList returns done list id and skip lists
 func (c *TrelloClient) StatisticList() (doneList string, skipList []string, err error) {
 	// Check board existence
-	if c == nil || c.CBoard == nil {
+	if c == nil || c.Board == nil {
 		return "", nil, fmt.Errorf("no board specified, cannot get lists")
 	}
 	logger.Debugln("Done list", doneList)

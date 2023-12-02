@@ -17,6 +17,14 @@ func GetInstance() *TrelloClient {
 			viper.GetString("trello.apiKey"),
 			viper.GetString("trello.token"),
 		)
+		// Init instance
+		c.Members = make(map[string]*trello.Member)
+		c.Cards = make(map[string]*trello.Card)
+		c.Labels = make(map[string]*trello.Label)
+		c.Actions = make(map[string]*trello.Action)
+		c.Lists = make(map[string]*trello.List)
+		c.Caretory = make(map[string]string)
+		c.MemberStatistics = make(map[string]*MemberStatistics)
 	}
 	return c
 }
@@ -29,39 +37,38 @@ func GetBoardInfo(id string) error {
 		return err
 	}
 	logger.Debugln("Get board:", board.Name)
-	instance.CBoard = board
+	instance.Board = board
 
 	list, err := instance.GetLists()
-	if err!= nil {
-        return err
-    }
-	logger.Debugln("Get List", len(list))
-	instance.StatisticList()
-
-	members, err := instance.GetMembersInBoard()
 	if err != nil {
 		return err
 	}
-	instance.Members = members
+	logger.Debugln("Get List", len(list))
+	instance.StatisticList()
+
+	_, err = instance.GetMembersInBoard()
+	if err != nil {
+		return err
+	}
+
 	logger.Debugln("Get members")
 
-    // Get cards in board
+	// Get cards in board
 	cards, err := instance.GetCardsInBoard(id)
-	if err!= nil {
-        return err
-    }
-	instance.Cards = cards
+	if err != nil {
+		return err
+	}
 	logger.Debugln("Get cards", len(cards))
-    tasks, err := instance.FilterTasks(instance.Cards)
+	tasks, err := instance.FilterTasks(cards)
 	if err != nil {
 		logger.Errorln(err)
 	}
 
 	// Statistics members
 	err = instance.StatisticTask(tasks)
-	if err!= nil {
-        logger.Errorln(err)
-    }
+	if err != nil {
+		logger.Errorln(err)
+	}
 	instance.PrintMemberStatistics()
 	return nil
 }

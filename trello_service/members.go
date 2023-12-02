@@ -9,27 +9,29 @@ import (
 
 // GetMembersInBoard returns a list of members of the board
 func (c *TrelloClient) GetMembersInBoard() (members []*trello.Member, err error) {
-	if c.CBoard == nil {
+	if c.Board == nil {
 		return nil, fmt.Errorf("no board specified, get board first")
 	}
-	c.Members, err = c.CBoard.GetMembers()
+	members, err = c.Board.GetMembers()
 	if err != nil {
 		return nil, err
 	}
-	c.MemberStatistics = make(map[string]*MemberStatistics)
+	
 	logger.Debugln("Init members statistics")
-	for _, m := range c.Members {
+	for _, m := range members {
 		m.SetClient(c.Client)
 		c.MemberStatistics[m.ID] = &MemberStatistics{
 			Name: m.Username,
 		}
+		c.Members[m.ID] = m
 	}
-	return c.Members, nil
+
+	return members, nil
 }
 
 // GetMemberCard returns a list of actions of the member
 func (c *TrelloClient) GetMemberActions(id string, args trello.Arguments) (action []*trello.Action, err error) {
-	if c.CBoard == nil {
+	if c.Board == nil {
         return nil, fmt.Errorf("no board specified, get board first")
     }
     
@@ -66,7 +68,7 @@ func ValidateMember(id string) (bool) {
 
 // FilterCardByMember gets cards list by member
 func FilterCardByMember(id string) (cards []*trello.Card, err error) {
-	if c.CBoard == nil {
+	if c.Board == nil {
 		return nil, fmt.Errorf("no specified board, check board first")
 	}
 

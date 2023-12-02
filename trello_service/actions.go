@@ -9,7 +9,7 @@ import (
 // GetActionsByCard get actions list by card but only UpdateCard action type
 func (c *TrelloClient) GetActionsByCard() (actions []*trello.Action, err error) {
 	// Check board
-	if c == nil || c.CBoard == nil {
+	if c == nil || c.Board == nil {
 		return nil, fmt.Errorf("no board specified, cannot get actions")
 	}
 	// Check card

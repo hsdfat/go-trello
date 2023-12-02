@@ -13,13 +13,14 @@ import (
 
 type TrelloClient struct {
 	Client  *trello.Client
-	CBoard  *trello.Board
-	Members []*trello.Member
-	Lists   []*trello.List
-	Actions []*trello.Action
+	Board   *trello.Board
+	Members map[string]*trello.Member
+	Lists   map[string]*trello.List
+	Actions map[string]*trello.Action
 
-	Cards []*trello.Card
-	Label []*trello.Label
+	Cards    map[string]*trello.Card
+	Labels   map[string]*trello.Label
+	Caretory map[string]string
 
 	DoneList         string
 	SkipLists        []string

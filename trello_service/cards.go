@@ -11,7 +11,7 @@ import (
 
 // GetCardsInBoard returns a list of cards visible in the board
 func (c *TrelloClient) GetCardsInBoard(id string) (cards []*trello.Card, err error) {
-	if c == nil || c.CBoard == nil {
+	if c == nil || c.Board == nil {
 		return nil, fmt.Errorf("no board specified, get board first")
 
 	}
@@ -20,16 +20,18 @@ func (c *TrelloClient) GetCardsInBoard(id string) (cards []*trello.Card, err err
 	if err != nil {
 		return nil, err
 	}
-	logger.Debugln("Number of cards visible", len(cards))
+	// logger.Debugln("Number of cards visible", len(cards))
 	for _, card := range cards {
 		card.SetClient(c.Client)
+		c.Cards[card.ID] = card
 	}
 	return cards, err
 }
 
 // FilterTasks gets tasks from a list of cards
 func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err error) {
-	if c == nil || c.CBoard == nil {
+	logger.Debugln("Filtering tasks")
+	if c == nil || c.Board == nil {
 		return nil, fmt.Errorf("no board specified, get board first")
 
 	}
@@ -49,9 +51,9 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 
 // StatisticTask gets tasks by members
 func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
-	if c == nil || c.CBoard == nil {
+	logger.Debugln("Statistic Tasks", len(c.MemberStatistics))
+	if c == nil || c.Board == nil {
 		return fmt.Errorf("no board specified, get board first")
-
 	}
 	for _, task := range tasks {
 		if task.Card.IDMembers != nil && len(task.Card.IDMembers) > 0 {
@@ -85,7 +87,6 @@ func ValidateTaskName(name string) (bool, int) {
 		return false, 0
 	}
 	matches := re.FindStringSubmatch(name)
-	fmt.Println(matches)
 	if len(matches) < 3 {
 		return true, 0
 	}
@@ -95,14 +96,6 @@ func ValidateTaskName(name string) (bool, int) {
         return true, 0
     }
 	return true, timeValueInt
-}
-
-// PrintMemberStatistics prinses the member statistics
-func (c *TrelloClient) PrintMemberStatistics() {
-	for _, stat := range c.MemberStatistics {
-		logger.Debugln("member: ", stat.Name, "\ttask [done/progress/total]: ", stat.NDoneTasks,"/", stat.NProgressTasks, "/", stat.NTasks,
-		 "\tHour [done/progress/total]: ", stat.NDoneHours, "/", stat.NProgressHours, "/", stat.NHours)
-	}
 }
 
 // CheckCardInSkipList returns true if card in the skip list
