@@ -12,30 +12,53 @@ import (
 )
 
 type TrelloClient struct {
-	Client  *trello.Client
-	Board   *trello.Board
-	Members map[string]*trello.Member
-	Lists   map[string]*trello.List
-	Actions map[string]*trello.Action
+	Client *trello.Client
+	Board  *trello.Board
 
+	Members  map[string]*trello.Member
+	Lists    map[string]*trello.List
+	Actions  map[string]*trello.Action
 	Cards    map[string]*trello.Card
 	Labels   map[string]*trello.Label
 	Caretory map[string]string
 
-	DoneList         string
-	SkipLists        []string
-	MemberStatistics map[string]*MemberStatistics
+	DoneList       string
+	SkipLists      []string
+	SprintStartDay *time.Time
+	SprintEndDay   *time.Time
+
+	MemberStats        map[string]*MemberStats
+	DailyTrackingStats *DateLinkedList
 }
 
-type MemberStatistics struct {
+type MemberStats struct {
 	Name           string
+	Email          string
+	FullName       string
 	TotalTasks     []*Task
-	NTasks         int
-	NHours         int
-	NProgressTasks int
-	NProgressHours int
-	NDoneTasks     int
-	NDoneHours     int
+	NTasks         int32
+	NHours         int32
+	NProgressTasks int32
+	NProgressHours int32
+	NDoneTasks     int32
+	NDoneHours     int32
+}
+
+type DailyTrackingStats struct {
+	DateBefore time.Time
+	Date       time.Time
+
+	MemberStats    map[string]*MemberStats
+	NTasks         int32
+	NHours         int32
+	NProgressTasks int32
+	NProgressHours int32
+	NDoneTasks     int32
+	NDoneHours     int32
+}
+
+func (d *DailyTrackingStats) CheckInCurrentTime(t time.Time) bool {
+	return false
 }
 
 type cardResult struct {
@@ -59,8 +82,11 @@ type Board struct {
 }
 
 type Task struct {
-	Card *trello.Card
-	Hour int
+	Card         *trello.Card
+	CreationTime *time.Time
+	IsDone       bool
+	IsInProgress bool
+	Hour         int32
 }
 
 // CardProgress represents the progress of a card.

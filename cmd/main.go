@@ -5,6 +5,7 @@ import (
 	"go-trello/trello_service"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/spf13/viper"
 )
@@ -27,7 +28,19 @@ func main() {
 
 	trello_service.Start()
 	boardId := viper.GetString("trello.boardId")
-	err = trello_service.GetBoardInfo(boardId)
+
+	startDay := viper.GetString("trello.startDay")
+	startDayTime, err := time.Parse("02-01-2006", startDay)
+	if err != nil {
+		log.Panicln("Cannot parse start day: ", err)
+	}
+	endDay := viper.GetString("trello.endDay")
+	endDayTime, err := time.Parse("02-01-2006", endDay)
+	if err != nil {
+		log.Panicln("Cannot parse end day: ", err)
+	}
+
+	err = trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
 	if err!= nil {
         log.Println(err)
     }

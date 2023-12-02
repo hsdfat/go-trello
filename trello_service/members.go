@@ -16,15 +16,18 @@ func (c *TrelloClient) GetMembersInBoard() (members []*trello.Member, err error)
 	if err != nil {
 		return nil, err
 	}
-	
+
 	logger.Debugln("Init members statistics")
 	for _, m := range members {
 		m.SetClient(c.Client)
-		c.MemberStatistics[m.ID] = &MemberStatistics{
-			Name: m.Username,
+		c.MemberStats[m.ID] = &MemberStats{
+			Email:    m.Email,
+			Name:     m.Username,
+			FullName: m.FullName,
 		}
 		c.Members[m.ID] = m
 	}
+	c.DailyTrackingStats.InitMembersDailyTracking(c.MemberStats)
 
 	return members, nil
 }
@@ -32,18 +35,18 @@ func (c *TrelloClient) GetMembersInBoard() (members []*trello.Member, err error)
 // GetMemberCard returns a list of actions of the member
 func (c *TrelloClient) GetMemberActions(id string, args trello.Arguments) (action []*trello.Action, err error) {
 	if c.Board == nil {
-        return nil, fmt.Errorf("no board specified, get board first")
-    }
-    
+		return nil, fmt.Errorf("no board specified, get board first")
+	}
+
 	// check member already exists in board
 	if c.Members == nil || len(c.Members) == 0 {
 		return nil, fmt.Errorf("no members specified, get board first")
 	}
-	
+
 	if ValidateMember(id) {
 		action := []*trello.Action{}
 		err = c.Client.Get(fmt.Sprintf("member/%v/actions", id), args, &action)
-		if err!= nil {
+		if err != nil {
 			return nil, err
 		}
 
@@ -53,17 +56,17 @@ func (c *TrelloClient) GetMemberActions(id string, args trello.Arguments) (actio
 }
 
 // ValidateMember checks if member exists in board
-func ValidateMember(id string) (bool) {
+func ValidateMember(id string) bool {
 	if c.Members == nil || len(c.Members) == 0 {
-        return false
-    }
+		return false
+	}
 
-    for _, member := range c.Members {
-        if member.ID == id {
-            return true
-        }
-    }
-    return false
+	for _, member := range c.Members {
+		if member.ID == id {
+			return true
+		}
+	}
+	return false
 }
 
 // FilterCardByMember gets cards list by member
@@ -75,6 +78,6 @@ func FilterCardByMember(id string) (cards []*trello.Card, err error) {
 	if !ValidateMember(id) {
 		return nil, fmt.Errorf("no valid member")
 	}
-	
+
 	return
 }
