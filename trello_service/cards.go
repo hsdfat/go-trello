@@ -36,7 +36,7 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 
 	}
 	for _, card := range cards {
-		ok, hour := ValidateTaskName(card.Name) 
+		ok, hour := ValidateTaskName(card.Name)
 		if ok {
 			task := &Task{
 				Card: card,
@@ -69,7 +69,7 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 							stat.NDoneHours = stat.NDoneHours + task.Hour
 						}
 						if !c.CheckCardInSkipList(task.Card) {
-							stat.NProgressTasks ++
+							stat.NProgressTasks++
 							stat.NProgressHours = stat.NProgressHours + task.Hour
 						}
 					}
@@ -92,9 +92,9 @@ func ValidateTaskName(name string) (bool, int) {
 	}
 	timeValue := matches[2]
 	timeValueInt, err := strconv.Atoi(timeValue)
-	if err!= nil {
-        return true, 0
-    }
+	if err != nil {
+		return true, 0
+	}
 	return true, timeValueInt
 }
 

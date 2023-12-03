@@ -27,8 +27,9 @@ func main() {
 
 	trello_service.Start()
 	boardId := viper.GetString("trello.boardId")
-	err = trello_service.GetBoardInfo(boardId)
-	if err!= nil {
-        log.Println(err)
-    }
+	//err = trello_service.GetBoardInfo(boardId)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	trello_service.Export_csv(boardId)
 }
