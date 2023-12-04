@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-trello/logger"
 	"strconv"
+	"time"
 
 	"github.com/adlio/trello"
 	"github.com/spf13/viper"
@@ -11,7 +12,7 @@ import (
 	"github.com/xuri/excelize/v2"
 )
 
-var c *TrelloClient
+var c *TrelloClient // Using only one instance like singleton
 
 // GetInstance returns singleton trello client instance
 func GetInstance() *TrelloClient {
@@ -28,14 +29,25 @@ func GetInstance() *TrelloClient {
 		c.Actions = make(map[string]*trello.Action)
 		c.Lists = make(map[string]*trello.List)
 		c.Caretory = make(map[string]string)
-		c.MemberStatistics = make(map[string]*MemberStatistics)
+		c.MemberStats = make(map[string]*MemberStats)
 	}
 	return c
 }
 
+// DeleteInstance deletes the instance of service
+func DeleteInstance() {
+	c = nil
+}
+
 // GetBoardInfo returns board information include board, members, actions of members
-func GetBoardInfo(id string) *TrelloClient {
+func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	instance := GetInstance()
+	// instance.SetSprintStartDay(startDay)
+	// instance.SetSprintEndDay(endDay)
+	err := instance.SetSprintDuration(startDay, endDay)
+	if err != nil {
+		logger.Errorln(err)
+	}
 	board, err := instance.Client.GetBoard(id)
 	if err != nil {
 		logger.Errorln(err)
@@ -77,12 +89,8 @@ func GetBoardInfo(id string) *TrelloClient {
 	return instance
 }
 
-func ExportCsv(id string) error {
-	memberData := GetBoardInfo(id)
-	//print
-	fmt.Println(memberData.MemberStatistics)
-	memberData.PrintMemberStatistics()
-
+func ExportCsv(memberData *TrelloClient) error {
+	
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
@@ -105,7 +113,7 @@ func ExportCsv(id string) error {
 	f.SetCellValue("SMF", "G1", "Progress Hours")
 	f.SetCellValue("SMF", "H1", "Hours")
 	i := 0
-	for _, stat := range memberData.MemberStatistics {
+	for _, stat := range memberData.MemberStats {
 		f.SetCellValue("SMF", "A"+strconv.Itoa((i+2)), stat.Name)
 		f.SetCellValue("SMF", "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
 		f.SetCellValue("SMF", "C"+strconv.Itoa((i+2)), stat.NProgressTasks)

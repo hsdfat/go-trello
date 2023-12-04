@@ -5,6 +5,8 @@ import (
 	"go-trello/logger"
 	"regexp"
 	"strconv"
+	"sync"
+	"sync/atomic"
 
 	"github.com/adlio/trello"
 )
@@ -38,9 +40,16 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 	for _, card := range cards {
 		ok, hour := ValidateTaskName(card.Name)
 		if ok {
+
 			task := &Task{
-				Card: card,
-				Hour: hour,
+				Card:         card,
+				Hour:         hour,
+				IsDone:       card.IDList == c.DoneList,
+				IsInProgress: c.CheckTaskInProgress(card),
+			}
+			creationTime, err := GetCreationTime(card.ID)
+			if err == nil {
+				task.CreationTime = creationTime
 			}
 			tasks = append(tasks, task)
 		}
@@ -51,39 +60,49 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 
 // StatisticTask gets tasks by members
 func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
-	logger.Debugln("Statistic Tasks", len(c.MemberStatistics))
+	logger.Debugln("Statistic Tasks")
 	if c == nil || c.Board == nil {
 		return fmt.Errorf("no board specified, get board first")
 	}
+	wg := new(sync.WaitGroup)
+	wg.Add(3 * len(tasks))
 	for _, task := range tasks {
 		// TODO: Calculate for total done tasks and progress tasks
-
-		if task.Card.IDMembers != nil && len(task.Card.IDMembers) > 0 {
-			for _, member := range task.Card.IDMembers {
-				if ValidateMember(member) {
-					stat, ok := c.MemberStatistics[member]
-					if ok {
-						stat.NTasks++
-						stat.NHours = stat.NHours + task.Hour
-						stat.TotalTasks = append(stat.TotalTasks, task)
-						if task.Card.IDList == c.DoneList {
-							stat.NDoneTasks++
-							stat.NDoneHours = stat.NDoneHours + task.Hour
-						}
-						if !c.CheckCardInSkipList(task.Card) {
-							stat.NProgressTasks++
-							stat.NProgressHours = stat.NProgressHours + task.Hour
+		// Member statistics
+		go func(task *Task, wg *sync.WaitGroup) {
+			defer wg.Done()
+			if task.Card.IDMembers != nil && len(task.Card.IDMembers) > 0 {
+				for _, member := range task.Card.IDMembers {
+					if ValidateMember(member) {
+						stat, ok := c.MemberStats[member]
+						if ok {
+							atomic.AddInt32(&stat.NTasks, 1)
+							atomic.AddInt32(&stat.NHours, task.Hour)
+							stat.TotalTasks = append(stat.TotalTasks, task)
+							if task.IsDone {
+								atomic.AddInt32(&stat.NDoneTasks, 1)
+								atomic.AddInt32(&stat.NDoneHours, task.Hour)
+							}
+							if task.IsInProgress {
+								atomic.AddInt32(&stat.NProgressTasks, 1)
+								atomic.AddInt32(&stat.NProgressHours, task.Hour)
+							}
 						}
 					}
 				}
 			}
-		}
+		}(task, wg)
+
+		// Daily Statistics
+		go c.DailyTrackingStats.TrackingTaskCreationByDate(task, wg)
+		go c.GetActionsByCard(task, wg)
 	}
+	wg.Wait()
 	return err
 }
 
 // ValidateTasksName validates card name is task type or not
-func ValidateTaskName(name string) (bool, int) {
+func ValidateTaskName(name string) (bool, int32) {
 	re := regexp.MustCompile(TASK_NAME_PATTERN)
 	if !re.MatchString(name) {
 		return false, 0
@@ -97,15 +116,21 @@ func ValidateTaskName(name string) (bool, int) {
 	if err != nil {
 		return true, 0
 	}
-	return true, timeValueInt
+	return true, int32(timeValueInt)
 }
 
 // CheckCardInSkipList returns true if card in the skip list
-func (c *TrelloClient) CheckCardInSkipList(card *trello.Card) bool {
-	for _, skipList := range c.SkipLists {
+func CheckCardInSkipList(card *trello.Card, skipLists []string) bool {
+	for _, skipList := range skipLists {
 		if card.IDList == skipList {
 			return true
 		}
 	}
 	return false
+}
+
+// CheckTaskInProgress checks task in progress or not by check card in skip list or done list
+func (c *TrelloClient) CheckTaskInProgress(card *trello.Card) bool {
+
+	return !CheckCardInSkipList(card, c.SkipLists) && card.IDList != c.DoneList
 }
