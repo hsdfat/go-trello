@@ -56,6 +56,8 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 		return fmt.Errorf("no board specified, get board first")
 	}
 	for _, task := range tasks {
+		// TODO: Calculate for total done tasks and progress tasks
+
 		if task.Card.IDMembers != nil && len(task.Card.IDMembers) > 0 {
 			for _, member := range task.Card.IDMembers {
 				if ValidateMember(member) {

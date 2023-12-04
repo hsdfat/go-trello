@@ -38,21 +38,21 @@ func GetBoardInfo(id string) *TrelloClient {
 	instance := GetInstance()
 	board, err := instance.Client.GetBoard(id)
 	if err != nil {
-		logger.Errorln("1")
+		logger.Errorln(err)
 	}
 	logger.Debugln("Get board:", board.Name)
 	instance.Board = board
 
 	list, err := instance.GetLists()
 	if err != nil {
-		logger.Errorln("2")
+		logger.Errorln(err)
 	}
 	logger.Debugln("Get List", len(list))
 	instance.StatisticList()
 
 	_, err = instance.GetMembersInBoard()
 	if err != nil {
-		logger.Errorln("3")
+		logger.Errorln(err)
 	}
 
 	logger.Debugln("Get members")
@@ -60,7 +60,7 @@ func GetBoardInfo(id string) *TrelloClient {
 	// Get cards in board
 	cards, err := instance.GetCardsInBoard(id)
 	if err != nil {
-		logger.Errorln("4")
+		logger.Errorln(err)
 	}
 	logger.Debugln("Get cards", len(cards))
 	tasks, err := instance.FilterTasks(cards)
@@ -77,7 +77,7 @@ func GetBoardInfo(id string) *TrelloClient {
 	return instance
 }
 
-func Export_csv(id string) error {
+func ExportCsv(id string) error {
 	memberData := GetBoardInfo(id)
 	//print
 	fmt.Println(memberData.MemberStatistics)
@@ -97,21 +97,23 @@ func Export_csv(id string) error {
 	}
 
 	f.SetCellValue("SMF", "A1", "Name")
-	f.SetCellValue("SMF", "B1", "NDoneTasks")
-	f.SetCellValue("SMF", "C1", "NProgressTasks")
-	f.SetCellValue("SMF", "D1", "NTasks")
-	f.SetCellValue("SMF", "E1", "NDoneHours")
-	f.SetCellValue("SMF", "F1", "NProgressHours")
-	f.SetCellValue("SMF", "G1", "NHours")
+	f.SetCellValue("SMF", "B1", "Done Tasks")
+	f.SetCellValue("SMF", "C1", "Progress Tasks")
+	f.SetCellValue("SMF", "D1", "Sprint Backlog Tasks")
+	f.SetCellValue("SMF", "E1", "Tasks")
+	f.SetCellValue("SMF", "F1", "Done Hours")
+	f.SetCellValue("SMF", "G1", "Progress Hours")
+	f.SetCellValue("SMF", "H1", "Hours")
 	i := 0
 	for _, stat := range memberData.MemberStatistics {
 		f.SetCellValue("SMF", "A"+strconv.Itoa((i+2)), stat.Name)
 		f.SetCellValue("SMF", "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
 		f.SetCellValue("SMF", "C"+strconv.Itoa((i+2)), stat.NProgressTasks)
-		f.SetCellValue("SMF", "D"+strconv.Itoa((i+2)), stat.NTasks)
-		f.SetCellValue("SMF", "E"+strconv.Itoa((i+2)), stat.NDoneHours)
-		f.SetCellValue("SMF", "F"+strconv.Itoa((i+2)), stat.NProgressHours)
-		f.SetCellValue("SMF", "G"+strconv.Itoa((i+2)), stat.NHours)
+		f.SetCellValue("SMF", "D"+strconv.Itoa((i+2)), stat.NTasks-stat.NProgressTasks-stat.NDoneTasks)
+		f.SetCellValue("SMF", "E"+strconv.Itoa((i+2)), stat.NTasks)
+		f.SetCellValue("SMF", "F"+strconv.Itoa((i+2)), stat.NDoneHours)
+		f.SetCellValue("SMF", "G"+strconv.Itoa((i+2)), stat.NProgressHours)
+		f.SetCellValue("SMF", "H"+strconv.Itoa((i+2)), stat.NHours)
 		i += 1
 	}
 	f.SetActiveSheet(index)
@@ -120,4 +122,61 @@ func Export_csv(id string) error {
 		fmt.Println(err)
 	}
 	return nil
+}
+
+func DrawChart() {
+	//get data
+	f, err := excelize.OpenFile("Book1.xlsx")
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    defer func() {
+        // Close the spreadsheet.
+        if err := f.Close(); err != nil {
+            fmt.Println(err)
+        }
+    }()
+	cell, err := f.GetCellValue("SMF", "B2")
+    if err != nil {
+        fmt.Println(err)
+        return
+    }
+    fmt.Println(cell)
+	
+	//add chart
+	tilte_chart, err1 := f.GetCellValue("SMF", "A2")
+	if err1 != nil {
+		fmt.Println(err1)
+		return
+	}
+    if err := f.AddChart("SMF", "J1", &excelize.Chart{
+        Type: excelize.Pie,
+        Series: []excelize.ChartSeries{
+            {
+                Name:       "Amount",
+                Categories: "SMF!$B$1:$D$1",
+                Values:     "SMF!$B$2:$D$2",
+            },
+        },
+        Format: excelize.GraphicOptions{
+            OffsetX: 15,
+            OffsetY: 10,
+        },
+        Title: []excelize.RichTextRun{
+            {
+				Text: tilte_chart,
+            },
+        },
+        PlotArea: excelize.ChartPlotArea{
+            ShowPercent: true,
+        },
+    }); err != nil {
+        fmt.Println(err)
+        return
+    }
+    // Save workbook
+    if err := f.SaveAs("Book1.xlsx"); err != nil {
+        fmt.Println(err)
+    }
 }

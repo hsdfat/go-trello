@@ -31,5 +31,7 @@ func main() {
 	//if err != nil {
 	//	log.Println(err)
 	//}
-	trello_service.Export_csv(boardId)
+	
+	trello_service.ExportCsv(boardId)
+	trello_service.DrawChart()
 }
