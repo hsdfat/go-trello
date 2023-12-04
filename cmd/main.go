@@ -28,7 +28,11 @@ func main() {
 
 	trello_service.Start()
 	boardId := viper.GetString("trello.boardId")
-
+	//err = trello_service.GetBoardInfo(boardId)
+	//if err != nil {
+	//	log.Println(err)
+	//}
+	
 	startDay := viper.GetString("trello.startDay")
 	startDayTime, err := time.Parse("02-01-2006", startDay)
 	if err != nil {
@@ -40,8 +44,8 @@ func main() {
 		log.Panicln("Cannot parse end day: ", err)
 	}
 
-	err = trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
-	if err!= nil {
-        log.Println(err)
-    }
+	ins := trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
+
+	trello_service.ExportCsv(ins)
+	trello_service.DrawChart()
 }

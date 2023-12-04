@@ -67,6 +67,7 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 	wg := new(sync.WaitGroup)
 	wg.Add(3 * len(tasks))
 	for _, task := range tasks {
+		// TODO: Calculate for total done tasks and progress tasks
 		// Member statistics
 		go func(task *Task, wg *sync.WaitGroup) {
 			defer wg.Done()
