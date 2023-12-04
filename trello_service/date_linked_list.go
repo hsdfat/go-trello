@@ -76,7 +76,7 @@ func (list *DateLinkedList) PrintMemberStatTracking(id string) {
 			continue
 		}
 
-		logger.Debugln(fmt.Sprintf("member: [%s] date [%s]: new task (done/progress/total): %d/%d/%d, new hour (done/progress/total): %d/%d/%d\t", memberStat.FullName,
+		logger.Debugln(fmt.Sprintf("member: [%s] date [%s]: new task (done/progress/extra task): %d/%d/%d, new hour (done/progress/extra task): %d/%d/%d\t", memberStat.FullName,
 			stat.Date.Format("02-01-2006"), memberStat.NDoneTasks, memberStat.NProgressTasks, memberStat.NTasks, memberStat.NDoneHours, memberStat.NProgressHours, memberStat.NHours))
 		current = current.next
 	}
@@ -123,8 +123,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						taskDone = true
 						atomic.AddInt32(&stat.NDoneTasks, 1)
 						atomic.AddInt32(&stat.NDoneHours, task.Hour)
-					}
-					if !CheckListContains(ins.SkipLists, action.Data.ListAfter.ID) {
+					} else if !CheckListContains(ins.SkipLists, action.Data.ListAfter.ID) {
 						taskInProgress = true
 						atomic.AddInt32(&stat.NProgressTasks, 1)
 						atomic.AddInt32(&stat.NProgressHours, task.Hour)
@@ -136,8 +135,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						taskUndone = true
 						atomic.AddInt32(&stat.NDoneTasks, -1)
 						atomic.AddInt32(&stat.NDoneHours, -1*task.Hour)
-					}
-					if !CheckListContains(ins.SkipLists, action.Data.ListBefore.ID) {
+					} else if !CheckListContains(ins.SkipLists, action.Data.ListBefore.ID) {
 						taskNotInProgress = true
 						atomic.AddInt32(&stat.NProgressTasks, -1)
 						atomic.AddInt32(&stat.NProgressHours, -1*task.Hour)
