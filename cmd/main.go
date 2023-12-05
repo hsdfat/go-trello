@@ -32,7 +32,7 @@ func main() {
 	//if err != nil {
 	//	log.Println(err)
 	//}
-	
+
 	startDay := viper.GetString("trello.startDay")
 	startDayTime, err := time.Parse("02-01-2006", startDay)
 	if err != nil {
@@ -47,5 +47,6 @@ func main() {
 	ins := trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
 
 	trello_service.ExportCsv(ins)
-	trello_service.DrawChart()
+	//trello_service.DrawPieChart()
+	trello_service.ExportDataOfMembersToExcel(ins)
 }

@@ -90,12 +90,12 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	for memberId, _ := range instance.Members {
 		instance.DailyTrackingStats.PrintMemberStatTracking(memberId)
 	}
-	
+
 	return instance
 }
 
 func ExportCsv(memberData *TrelloClient) error {
-	
+
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
@@ -119,7 +119,7 @@ func ExportCsv(memberData *TrelloClient) error {
 	f.SetCellValue("SMF", "H1", "Hours")
 	i := 0
 	for _, stat := range memberData.MemberStats {
-		f.SetCellValue("SMF", "A"+strconv.Itoa((i+2)), stat.Name)
+		f.SetCellValue("SMF", "A"+strconv.Itoa((i+2)), stat.FullName)
 		f.SetCellValue("SMF", "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
 		f.SetCellValue("SMF", "C"+strconv.Itoa((i+2)), stat.NProgressTasks)
 		f.SetCellValue("SMF", "D"+strconv.Itoa((i+2)), stat.NTasks-stat.NProgressTasks-stat.NDoneTasks)
@@ -137,59 +137,68 @@ func ExportCsv(memberData *TrelloClient) error {
 	return nil
 }
 
-func DrawChart() {
+func DrawPieChart() {
 	//get data
 	f, err := excelize.OpenFile("Book1.xlsx")
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-    defer func() {
-        // Close the spreadsheet.
-        if err := f.Close(); err != nil {
-            fmt.Println(err)
-        }
-    }()
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	cell, err := f.GetCellValue("SMF", "B2")
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-    fmt.Println(cell)
-	
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	fmt.Println(cell)
+
 	//add chart
 	tilte_chart, err1 := f.GetCellValue("SMF", "A2")
 	if err1 != nil {
 		fmt.Println(err1)
 		return
 	}
-    if err := f.AddChart("SMF", "J1", &excelize.Chart{
-        Type: excelize.Pie,
-        Series: []excelize.ChartSeries{
-            {
-                Name:       "Amount",
-                Categories: "SMF!$B$1:$D$1",
-                Values:     "SMF!$B$2:$D$2",
-            },
-        },
-        Format: excelize.GraphicOptions{
-            OffsetX: 15,
-            OffsetY: 10,
-        },
-        Title: []excelize.RichTextRun{
-            {
+	if err := f.AddChart("SMF", "J1", &excelize.Chart{
+		Type: excelize.Pie,
+		Series: []excelize.ChartSeries{
+			{
+				Name:       "Amount",
+				Categories: "SMF!$B$1:$D$1",
+				Values:     "SMF!$B$2:$D$2",
+			},
+		},
+		Format: excelize.GraphicOptions{
+			OffsetX: 15,
+			OffsetY: 10,
+		},
+		Title: []excelize.RichTextRun{
+			{
 				Text: tilte_chart,
-            },
-        },
-        PlotArea: excelize.ChartPlotArea{
-            ShowPercent: true,
-        },
-    }); err != nil {
-        fmt.Println(err)
-        return
-    }
-    // Save workbook
-    if err := f.SaveAs("Book1.xlsx"); err != nil {
-        fmt.Println(err)
-    }
+			},
+		},
+		PlotArea: excelize.ChartPlotArea{
+			ShowPercent: true,
+		},
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
+	// Save workbook
+	if err := f.SaveAs("Book1.xlsx"); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func ExportDataOfMembersToExcel(memberData *TrelloClient) {
+	for memberId, _ := range memberData.Members {
+		totalTasks := memberData.MemberStats[memberId].NTasks
+		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks)
+		DrawLineChart(memberData.MemberStats[memberId].Name)
+		//creatSheet(eachMemberData)
+	}
 }
