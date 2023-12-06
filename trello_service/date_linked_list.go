@@ -2,11 +2,13 @@ package trello_service
 
 import (
 	"fmt"
-	"github.com/xuri/excelize/v2"
 	"go-trello/logger"
+	"go-trello/utils"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/xuri/excelize/v2"
 
 	"github.com/adlio/trello"
 )
@@ -83,8 +85,19 @@ func (list *DateLinkedList) PrintMemberStatTracking(id string) {
 	}
 }
 
-func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask int32) {
+func (list *DateLinkedList) CountDaysInSprint() int {
+	count :=0
+	temp := list.head
+	for temp != nil {
+	   temp = temp.next
+	   count += 1
+	}
+	return count
+}
+
+func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask int32, numberOfSprint int, totalHours int32) {
 	numberOfTasksNeedDone := totalTask
+	numberOfRemainingHours := totalHours
 
 	//export to excel
 	f, err := excelize.OpenFile("Book1.xlsx")
@@ -105,6 +118,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 
 	current := list.head
 	var i int = 64
+	var countDay int = 1
 	for current != nil {
 		stat := current.stat
 		if stat == nil {
@@ -119,6 +133,9 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		//get data to sheet of each member
 		f.SetCellValue(memberStat.Name, "A1", "Date")
 		f.SetCellValue(memberStat.Name, "A2", "Tasks")
+		f.SetCellValue(memberStat.Name, "A3", "Expected")
+		f.SetCellValue(memberStat.Name, "A4", "Hours")
+
 		// Create a new sheet.
 		index, err := f.NewSheet(memberStat.Name)
 		if err != nil {
@@ -128,10 +145,18 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		fmt.Println("$$: ", string((i+2))+"1")
 		f.SetCellValue(memberStat.Name, string((i+2))+"1", date)
 		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
+		fmt.Println("!!numberOfSprint: ", numberOfSprint)
+		fmt.Println("!!:countDay ", countDay)
+		fmt.Println("!!:totalTask ", totalTask)
+		fmt.Println("!!y: ", utils.GetYValue(-float32(totalTask)/float32(numberOfSprint), countDay, totalTask))
+		f.SetCellValue(memberStat.Name, string((i+2))+"3", utils.GetYValue(-float32(totalTask)/float32(numberOfSprint), countDay, totalTask))
+		f.SetCellValue(memberStat.Name, string((i+2))+"4", )		
 		//f.SetCellValue(memberStat.Name, strconv.Itoa((i+2))+"1", date)
 		//f.SetCellValue(memberStat.Name, strconv.Itoa((i+2))+"2", numberOfTasksNeedDone)
+		countDay += 1
 		i += 1
 		numberOfTasksNeedDone = numberOfTasksNeedDone + memberStat.NTasks - memberStat.NDoneTasks
+		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
 		//DrawLineChart(f, memberStat.FullName)
 		name_sheet := memberStat.Name
 		fmt.Println("@@@: ", name_sheet)

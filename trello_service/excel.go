@@ -38,6 +38,50 @@ func creatSheet(eachMemberData *MemberStats, time time.Time) {
 	}
 }
 
+func DrawLine(nameOfSheet string) {
+	f, err := excelize.OpenFile("Book1.xlsx")
+	if err != nil {
+		logger.Errorln(err)
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			logger.Errorln(err)
+		}
+	}()
+	lineWidth := 1.2
+	err_add_shape := f.AddShape(nameOfSheet,
+    &excelize.Shape{
+        Cell: "G6",
+        Type: "line",
+        Line: excelize.ShapeLine{Color: "FF3349", Width: &lineWidth},
+        //Fill: excelize.Fill{Color: []string{"8EB9FF"}},
+
+        // Paragraph: []excelize.RichTextRun{
+        //     {
+        //         Text: "Rectangle Shape",
+        //         Font: &excelize.Font{
+        //             Bold:      true,
+        //             Italic:    true,
+        //             Family:    "Times New Roman",
+        //             Size:      18,
+        //             Color:     "777777",
+        //             Underline: "sng",
+        //         },
+        //     },
+        // },
+        // Width:  180,
+        // Height: 40,
+    },
+	)
+	if err_add_shape != nil {
+		logger.Errorln(err_add_shape)
+	}
+	if err := f.SaveAs("Book1.xlsx"); err != nil {
+		logger.Errorln(err)
+	}
+}
+
 func DrawLineChart(name_sheet string) {
 	f, err := excelize.OpenFile("Book1.xlsx")
 	if err != nil {
@@ -56,7 +100,7 @@ func DrawLineChart(name_sheet string) {
 		Type: excelize.Line,
 		Series: []excelize.ChartSeries{
 			{
-				//Name:       name_sheet,
+				Name:       name_sheet + "!$A$2",
 				Categories: name_sheet + "!" + "$" + rowHead + "$1" + ":" + "$" + rowEnd + "$1",
 				Values:     name_sheet + "!" + "$" + rowHead + "$2" + ":" + "$" + rowEnd + "$2",
 				Line: excelize.ChartLine{
@@ -64,6 +108,15 @@ func DrawLineChart(name_sheet string) {
 					Width:  1.0,
 				},
 			},
+			{
+                Name:       name_sheet + "!$A$3",
+                //Categories: "Sheet1!$B$1:$D$1",
+                Values:     name_sheet + "!" + "$" + rowHead + "$3" + ":" + "$" + rowEnd + "$3",
+                Line: excelize.ChartLine{
+                    Smooth: true,
+					Width: 1.0,
+                },
+            },
 		},
 		Format: excelize.GraphicOptions{
 			OffsetX: 15,
@@ -134,6 +187,34 @@ func DrawLineChart(name_sheet string) {
 		fmt.Println(err)
 		return
 	}
+
+	// lineWidth := 1.2
+	// err_add_shape := f.AddShape(name_sheet,
+    // &excelize.Shape{
+    //     Cell: "G6",
+    //     Type: "line",
+    //     Line: excelize.ShapeLine{Color: "FF3349", Width: &lineWidth},
+        //Fill: excelize.Fill{Color: []string{"8EB9FF"}},
+
+        // Paragraph: []excelize.RichTextRun{
+        //     {
+        //         Text: "Rectangle Shape",
+        //         Font: &excelize.Font{
+        //             Bold:      true,
+        //             Italic:    true,
+        //             Family:    "Times New Roman",
+        //             Size:      18,
+        //             Color:     "777777",
+        //             Underline: "sng",
+        //         },
+        //     },
+        // },
+        // Width:  180,
+        // Height: 40,
+    // },)	
+	// if err_add_shape != nil {
+	// 	logger.Errorln(err_add_shape)
+	// }
 
 	if err := f.SaveAs("Book1.xlsx"); err != nil {
 		fmt.Println(err)

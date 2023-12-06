@@ -193,11 +193,16 @@ func DrawPieChart() {
 	}
 }
 
+
+
 func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 	for memberId, _ := range memberData.Members {
 		totalTasks := memberData.MemberStats[memberId].NTasks
-		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks)
+		totalHours := memberData.MemberStats[memberId].NHours
+		numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours)
 		DrawLineChart(memberData.MemberStats[memberId].Name)
+		//DrawLine(memberData.MemberStats[memberId].Name)
 		//creatSheet(eachMemberData)
 	}
 }
