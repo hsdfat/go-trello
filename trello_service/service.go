@@ -95,7 +95,6 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 }
 
 func ExportCsv(memberData *TrelloClient) error {
-
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {

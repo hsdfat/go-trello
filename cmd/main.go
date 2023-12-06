@@ -47,6 +47,6 @@ func main() {
 	ins := trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
 
 	trello_service.ExportCsv(ins)
-	//trello_service.DrawPieChart()
+	trello_service.DrawPieChart()
 	trello_service.ExportDataOfMembersToExcel(ins)
 }

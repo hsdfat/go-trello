@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/xuri/excelize/v2"
 	"go-trello/logger"
-	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -105,7 +104,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 	}
 
 	current := list.head
-	i := 0
+	var i int = 64
 	for current != nil {
 		stat := current.stat
 		if stat == nil {
@@ -119,16 +118,18 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		}
 		//get data to sheet of each member
 		f.SetCellValue(memberStat.Name, "A1", "Date")
-		f.SetCellValue(memberStat.Name, "B1", "Number Of Tasks")
+		f.SetCellValue(memberStat.Name, "A2", "Tasks")
 		// Create a new sheet.
 		index, err := f.NewSheet(memberStat.Name)
 		if err != nil {
 			logger.Errorln(err)
 		}
 		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
-		fmt.Println("$$: ", memberStat.NTasks)
-		f.SetCellValue(memberStat.Name, "A"+strconv.Itoa((i+2)), date)
-		f.SetCellValue(memberStat.Name, "B"+strconv.Itoa((i+2)), numberOfTasksNeedDone)
+		fmt.Println("$$: ", string((i+2))+"1")
+		f.SetCellValue(memberStat.Name, string((i+2))+"1", date)
+		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
+		//f.SetCellValue(memberStat.Name, strconv.Itoa((i+2))+"1", date)
+		//f.SetCellValue(memberStat.Name, strconv.Itoa((i+2))+"2", numberOfTasksNeedDone)
 		i += 1
 		numberOfTasksNeedDone = numberOfTasksNeedDone + memberStat.NTasks - memberStat.NDoneTasks
 		//DrawLineChart(f, memberStat.FullName)
