@@ -49,5 +49,7 @@ func main() {
 	trello_service.ExportTotalMemberToCsv(ins)
 	trello_service.DrawPieChart()
 	trello_service.ExportDataOfMembersToExcel(ins)
+	trello_service.ExportDataOfDailyToExcel(ins)
+	trello_service.DrawDailyLineChart("Daily")
 	//trello_service.DrawLineChartForTotal("SMF")
 }

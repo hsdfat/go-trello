@@ -5,10 +5,8 @@ import (
 	"go-trello/logger"
 	"strconv"
 	"time"
-
 	"github.com/adlio/trello"
 	"github.com/spf13/viper"
-	// excelize "github.com/xuri/excelize/v2"
 	"github.com/xuri/excelize/v2"
 )
 
@@ -228,9 +226,29 @@ func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 		totalTasks := memberData.MemberStats[memberId].NTasks
 		totalHours := memberData.MemberStats[memberId].NHours
 		numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+
 		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours)
 		DrawLineChart(memberData.MemberStats[memberId].Name)
 		//DrawLine(memberData.MemberStats[memberId].Name)
 		//creatSheet(eachMemberData)
 	}
+}
+
+func ExportDataOfDailyToExcel(memberData *TrelloClient) {
+	// for memberId, _ := range memberData.Members {
+	// 	totalTasks := memberData.MemberStats[memberId].NTasks
+	// 	totalHours := memberData.MemberStats[memberId].NHours
+	// 	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+
+	// 	memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours)
+	// 	DrawLineChart(memberData.MemberStats[memberId].Name)
+	// }
+	
+	//dataDaily := memberData.DailyTrackingStats.calculateRemainingTasksDaily()
+	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList()
+	//sort.Strings(dataDaily)
+	logger.Debugln("^^^: ", dataDailyList) 
+	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+	SetCellValue("Daily", dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint)
+	
 }

@@ -2,12 +2,13 @@ package trello_service
 
 import (
 	"fmt"
-	"github.com/xuri/excelize/v2"
 	"go-trello/logger"
 	"go-trello/utils"
+
+	"github.com/xuri/excelize/v2"
 )
 
-func (list *DateLinkedList) ExportDataOfSMFTeamToExcel(id string, totalTask int32, numberOfSprint int, totalHours int32) {
+func (list *DateLinkedList) ExportDataOfDailySMFTeamToExcel(name_sheet string, id string, totalTask int32, numberOfSprint int, totalHours int32) {
 	numberOfTasksNeedDone := totalTask
 	numberOfRemainingHours := totalHours
 
@@ -43,13 +44,13 @@ func (list *DateLinkedList) ExportDataOfSMFTeamToExcel(id string, totalTask int3
 			continue
 		}
 		//get data to sheet of each member
-		f.SetCellValue(memberStat.Name, "A1", "Date")
-		f.SetCellValue(memberStat.Name, "A2", "Tasks")
-		f.SetCellValue(memberStat.Name, "A3", "Expected")
-		f.SetCellValue(memberStat.Name, "A4", "Hours")
+		f.SetCellValue(name_sheet, "A1", "Date")
+		f.SetCellValue(name_sheet, "A2", "Tasks")
+		f.SetCellValue(name_sheet, "A3", "Expected")
+		f.SetCellValue(name_sheet, "A4", "Hours")
 
 		// Create a new sheet.
-		index, err := f.NewSheet(memberStat.Name)
+		index, err := f.NewSheet(name_sheet)
 		if err != nil {
 			logger.Errorln(err)
 		}
@@ -61,17 +62,11 @@ func (list *DateLinkedList) ExportDataOfSMFTeamToExcel(id string, totalTask int3
 		fmt.Println("!!:countDay ", countDay)
 		fmt.Println("!!:totalTask ", totalTask)
 		f.SetCellValue(memberStat.Name, string((i+2))+"3", utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask))
-		//f.SetCellValue(memberStat.Name, string((i+2))+"4", )
-		//f.SetCellValue(memberStat.Name, strconv.Itoa((i+2))+"1", date)
-		//f.SetCellValue(memberStat.Name, strconv.Itoa((i+2))+"2", numberOfTasksNeedDone)
 		countDay += 1
 		i += 1
 		numberOfTasksNeedDone = numberOfTasksNeedDone + memberStat.NTasks - memberStat.NDoneTasks
 		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
-		//DrawLineChart(f, memberStat.FullName)
-		name_sheet := memberStat.Name
-		fmt.Println("@@@: ", name_sheet)
-
+		//name_sheet := memberStat.Names
 		f.SetActiveSheet(index)
 		current = current.next
 	}
