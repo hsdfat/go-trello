@@ -97,6 +97,8 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList() []string {
 		return nil
 	}
 	current := list.head
+	i := current   
+	DailyTrackingStats.CountDaysInSprint()
 	for current != nil {
 		stat := current.stat
 		if stat == nil {
@@ -105,13 +107,15 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList() []string {
 		}
 
 		remainingTasks += stat.NTasks - stat.NProgressTasks - stat.NDoneTasks
-		remainingHours += stat.NHours - 
+		remainingHours += stat.NHours - stat.NProgressHours - stat.NDoneHours
+		linear_hours *=  
 
 		logger.Debugln("&1", stat.Date.Format("02-01-2006"))
 		logger.Debugln("&2", remainingTasks)
 		remainingTasksData = append(remainingTasksData, stat.Date.Format("02-01-2006"))
 		//remainingTasksData = append(remainingTasksData, fmt.Sprintf("%s", remainingTasks))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingTasks)))
+		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingHours)))
 		// logger.Debugln(fmt.Sprintf("date [%s]: new task (done/progress/total): %d/%d/%d, new hour (done/progress/total): %d/%d/%d\t",
 		// 	stat.Date.Format("02-01-2006"), stat.NDoneTasks, stat.NProgressTasks, stat.NTasks, stat.NDoneHours, stat.NProgressHours, stat.NHours))
 		current = current.next

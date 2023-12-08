@@ -67,14 +67,17 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 	f.SetCellValue(nameOfSheet, "A2", "Tasks")
 	f.SetCellValue(nameOfSheet, "A3", "Expected")
 	f.SetCellValue(nameOfSheet, "A4", "Remaining Hours")
-	for i:= 0; i < len(dataDaily); i += 2 {
+	f.SetCellValue(nameOfSheet, "A5", "Hours")
+
+	for i:= 0; i < len(dataDaily); i += 3 {
 		date := dataDaily[i]
 		remainingTasks := dataDaily[i+1]
+		remainingHours := dataDaily[i+2]
 		f.SetCellValue(nameOfSheet, string((j+2))+"1", date)
 		//remainingTasksInt, err := strconv.Atoi(remainingTasks)
         f.SetCellValue(nameOfSheet, string((j+2))+"2", remainingTasks) //
 		f.SetCellValue(nameOfSheet, string((j+2))+"3", utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, int32(totalTask)))
-		f.SetCellValue(nameOfSheet, string((j+2))+"4", ) //
+		f.SetCellValue(nameOfSheet, string((j+2))+"4", remainingHours) //
 		j += 1
 		countDay += 1
 	}
@@ -593,4 +596,88 @@ func DrawRemainingHours(name_sheet string) {
 	if err := f.SaveAs("Book1.xlsx"); err != nil {
 		fmt.Println(err)
 	}
+}
+
+func DrawClusteredColumnChart(name_sheet string) {
+	f, err := excelize.OpenFile("Book1.xlsx")
+	if err != nil {
+		logger.Errorln(err)
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			logger.Errorln(err)
+		}
+	}()
+	
+	rowHead := string(int('B'))
+	rowEnd := string(int('B') + 11)
+	if err := f.AddChart(name_sheet, "H10", &excelize.Chart{
+		Type: excelize.Col,
+		Series: []excelize.ChartSeries{
+			{
+                Name:		name_sheet + "Remaining",    
+				Categories: name_sheet + "!" + "$" + rowHead + "$4" + ":" + "$" + rowEnd + "$4",
+                Values:     name_sheet + "!" + "$" + rowHead + "$5" + ":" + "$" + rowEnd + "$5",
+            },
+
+		},
+		Format: excelize.GraphicOptions{
+			OffsetX: 15,
+			OffsetY: 10,
+		},
+		Legend: excelize.ChartLegend{
+			Position: "left",
+		},
+		Title: []excelize.RichTextRun{
+			{
+				Text: name_sheet,
+			},
+		},
+		XAxis: excelize.ChartAxis{
+			None:           false,
+			MajorGridLines: false,
+			MinorGridLines: true,
+			MajorUnit:      2,
+			Title: []excelize.RichTextRun{
+				{
+					Text: "Date",
+				},
+			},
+		},
+
+		YAxis: excelize.ChartAxis{
+			None:           false,
+			MajorGridLines: false,
+			MinorGridLines: true,
+			MajorUnit:      5,
+			Title: []excelize.RichTextRun{
+				{
+					Text: "Remaining Hours",
+				},
+			},
+		},
+
+		PlotArea: excelize.ChartPlotArea{
+			ShowCatName:     false,
+			ShowLeaderLines: false,
+			ShowPercent:     true,
+			ShowSerName:     true,
+			ShowVal:         true,
+		},
+		Dimension: excelize.ChartDimension{
+			Width:  650,
+			Height: 500,
+		},
+		ShowBlanksAs: "span",
+		HoleSize:     3,
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
+
+	if err := f.SaveAs("Book1.xlsx"); err != nil {
+		fmt.Println(err)
+	}
+
 }
