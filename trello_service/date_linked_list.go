@@ -86,11 +86,11 @@ func (list *DateLinkedList) PrintMemberStatTracking(id string) {
 }
 
 func (list *DateLinkedList) CountDaysInSprint() int {
-	count :=0
+	count := 0
 	temp := list.head
 	for temp != nil {
-	   temp = temp.next
-	   count += 1
+		temp = temp.next
+		count += 1
 	}
 	return count
 }
@@ -142,17 +142,103 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 			logger.Errorln(err)
 		}
 		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
+
+		f.SetCellValue(memberStat.Name, string((i+2))+"1", date)
+		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
+
+		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
+		fmt.Println("************", expected_task)
+		f.SetCellValue(
+			memberStat.Name,
+			string((i+2))+"3",
+			expected_task,
+		)
+		countDay += 1
+		i += 1
+		numberOfTasksNeedDone = numberOfTasksNeedDone + memberStat.NTasks - memberStat.NDoneTasks
+		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
+		//DrawLineChart(f, memberStat.FullName)
+		//name_sheet := memberStat.Name
+		//fmt.Println("@@@: ", name_sheet)
+
+		//set size of coloum
+		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)
+		if err_size_column != nil {
+			fmt.Println(err_size_column)
+		}
+
+		err_size_height := f.SetRowHeight(memberStat.Name, 1, 20)
+		if err_size_height != nil {
+			fmt.Println(err_size_height)
+		}
+
+		f.SetActiveSheet(index)
+		current = current.next
+	}
+
+	if err := f.SaveAs("Book1.xlsx"); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func (list *DateLinkedList) ExportDataOfSMFTeamToExcel(nameOfSheet string, id string, totalTask int32, numberOfSprint int, totalHours int32) {
+	numberOfTasksNeedDone := totalTask
+	numberOfRemainingHours := totalHours
+
+	//export to excel
+	f, err := excelize.OpenFile("Book1.xlsx")
+	if err != nil {
+		logger.Errorln(err)
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			logger.Errorln(err)
+		}
+	}()
+
+	if list.head == nil {
+		logger.Debugln("List is empty")
+		return
+	}
+
+	current := list.head
+	var i int = 64
+	var countDay int = 1
+	for current != nil {
+		stat := current.stat
+		if stat == nil {
+			current = current.next
+			continue
+		}
+		memberStat, ok := stat.MemberStats[id]
+		if !ok {
+			current = current.next
+			continue
+		}
+		//get data to sheet of each member
+		f.SetCellValue(nameOfSheet, "A1", "Date")
+		f.SetCellValue(nameOfSheet, "A2", "Tasks")
+		f.SetCellValue(nameOfSheet, "A3", "Expected")
+		f.SetCellValue(nameOfSheet, "A4", "Hours")
+
+		// Create a new sheet.
+		index, err := f.NewSheet(nameOfSheet)
+		if err != nil {
+			logger.Errorln(err)
+		}
+		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
 		fmt.Println("$$: ", string((i+2))+"1")
 		f.SetCellValue(memberStat.Name, string((i+2))+"1", date)
 		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
-		fmt.Println("!!numberOfSprint: ", numberOfSprint)
-		fmt.Println("!!:countDay ", countDay)
-		fmt.Println("!!:totalTask ", totalTask)
-		fmt.Println("!!y: ", utils.GetYValue(-float32(totalTask)/float32(numberOfSprint), countDay, totalTask))
-		f.SetCellValue(memberStat.Name, string((i+2))+"3", utils.GetYValue(-float32(totalTask)/float32(numberOfSprint), countDay, totalTask))
-		f.SetCellValue(memberStat.Name, string((i+2))+"4", )		
-		//f.SetCellValue(memberStat.Name, strconv.Itoa((i+2))+"1", date)
-		//f.SetCellValue(memberStat.Name, strconv.Itoa((i+2))+"2", numberOfTasksNeedDone)
+
+		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
+		fmt.Println("************", expected_task)
+		f.SetCellValue(
+			memberStat.Name,
+			string((i+2))+"3",
+			expected_task,
+		)
 		countDay += 1
 		i += 1
 		numberOfTasksNeedDone = numberOfTasksNeedDone + memberStat.NTasks - memberStat.NDoneTasks
@@ -160,6 +246,17 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		//DrawLineChart(f, memberStat.FullName)
 		name_sheet := memberStat.Name
 		fmt.Println("@@@: ", name_sheet)
+
+		//set size of coloum
+		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)
+		if err_size_column != nil {
+			fmt.Println(err_size_column)
+		}
+
+		err_size_height := f.SetRowHeight(memberStat.Name, 1, 20)
+		if err_size_height != nil {
+			fmt.Println(err_size_height)
+		}
 
 		f.SetActiveSheet(index)
 		current = current.next

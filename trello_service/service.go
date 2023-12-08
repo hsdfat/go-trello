@@ -89,12 +89,14 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 
 	for memberId, _ := range instance.Members {
 		instance.DailyTrackingStats.PrintMemberStatTracking(memberId)
+		logger.Debugln("______________________________")
+		instance.DailyTrackingStats.PrintLinkList()
 	}
 
 	return instance
 }
 
-func ExportCsv(memberData *TrelloClient) error {
+func ExportTotalMemberToCsv(memberData *TrelloClient) error {
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
@@ -104,30 +106,58 @@ func ExportCsv(memberData *TrelloClient) error {
 	// Create a new sheet.
 	index, err := f.NewSheet("SMF")
 	if err != nil {
-		fmt.Println(err)
-		logger.Errorln("5")
+		logger.Errorln(err)
 	}
-
+	totalDoneTasks, totalProgressTasks, totalRemainingTasks, totalTasks, totalDoneHours, totalProgressHours, totalHours := 0, 0, 0, 0, 0, 0, 0
 	f.SetCellValue("SMF", "A1", "Name")
 	f.SetCellValue("SMF", "B1", "Done Tasks")
 	f.SetCellValue("SMF", "C1", "Progress Tasks")
-	f.SetCellValue("SMF", "D1", "Sprint Backlog Tasks")
+	f.SetCellValue("SMF", "D1", "Remaining Tasks")
 	f.SetCellValue("SMF", "E1", "Tasks")
 	f.SetCellValue("SMF", "F1", "Done Hours")
 	f.SetCellValue("SMF", "G1", "Progress Hours")
 	f.SetCellValue("SMF", "H1", "Hours")
+	f.SetCellValue("SMF", "A13", "Total")
 	i := 0
 	for _, stat := range memberData.MemberStats {
 		f.SetCellValue("SMF", "A"+strconv.Itoa((i+2)), stat.FullName)
 		f.SetCellValue("SMF", "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
+		totalDoneTasks += int(stat.NDoneTasks)
 		f.SetCellValue("SMF", "C"+strconv.Itoa((i+2)), stat.NProgressTasks)
+		totalProgressTasks += int(stat.NProgressTasks)
 		f.SetCellValue("SMF", "D"+strconv.Itoa((i+2)), stat.NTasks-stat.NProgressTasks-stat.NDoneTasks)
+		totalRemainingTasks += int(stat.NTasks - stat.NProgressTasks - stat.NDoneTasks)
 		f.SetCellValue("SMF", "E"+strconv.Itoa((i+2)), stat.NTasks)
+		totalTasks += int(stat.NTasks)
 		f.SetCellValue("SMF", "F"+strconv.Itoa((i+2)), stat.NDoneHours)
+		totalDoneHours += int(stat.NDoneHours)
 		f.SetCellValue("SMF", "G"+strconv.Itoa((i+2)), stat.NProgressHours)
+		totalProgressHours += int(stat.NProgressHours)
 		f.SetCellValue("SMF", "H"+strconv.Itoa((i+2)), stat.NHours)
+		totalHours += int(stat.NHours)
 		i += 1
 	}
+
+	//set total
+	f.SetCellValue("SMF", "B"+strconv.Itoa((i+2)), totalDoneTasks)
+	f.SetCellValue("SMF", "C"+strconv.Itoa((i+2)), totalProgressTasks)
+	f.SetCellValue("SMF", "D"+strconv.Itoa((i+2)), totalRemainingTasks)
+	f.SetCellValue("SMF", "E"+strconv.Itoa((i+2)), totalTasks)
+	f.SetCellValue("SMF", "F"+strconv.Itoa((i+2)), totalDoneHours)
+	f.SetCellValue("SMF", "G"+strconv.Itoa((i+2)), totalProgressHours)
+	f.SetCellValue("SMF", "H"+strconv.Itoa((i+2)), totalHours)
+
+	//set size of coloum
+	err_size_column := f.SetColWidth("SMF", "A", "H", 20)
+	if err_size_column != nil {
+		fmt.Println(err_size_column)
+	}
+
+	err_size_height := f.SetRowHeight("SMF", 1, 20)
+	if err_size_height != nil {
+		fmt.Println(err_size_height)
+	}
+
 	f.SetActiveSheet(index)
 	// Save spreadsheet by the given path.
 	if err := f.SaveAs("Book1.xlsx"); err != nil {
@@ -157,7 +187,7 @@ func DrawPieChart() {
 	fmt.Println(cell)
 
 	//add chart
-	tilte_chart, err1 := f.GetCellValue("SMF", "A2")
+	tilte_chart, err1 := f.GetCellValue("SMF", "A13")
 	if err1 != nil {
 		fmt.Println(err1)
 		return
@@ -168,7 +198,7 @@ func DrawPieChart() {
 			{
 				Name:       "Amount",
 				Categories: "SMF!$B$1:$D$1",
-				Values:     "SMF!$B$2:$D$2",
+				Values:     "SMF!$B$13:$D$13",
 			},
 		},
 		Format: excelize.GraphicOptions{
@@ -192,8 +222,6 @@ func DrawPieChart() {
 		fmt.Println(err)
 	}
 }
-
-
 
 func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 	for memberId, _ := range memberData.Members {
