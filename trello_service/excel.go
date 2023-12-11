@@ -59,7 +59,17 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 	if err != nil {
 		logger.Errorln(err)
 	}
-	
+	//set size of coloum
+	err_size_column := f.SetColWidth(nameOfSheet, "A", "L", 15)
+	if err_size_column != nil {
+		fmt.Println(err_size_column)
+	}
+
+	err_size_height := f.SetRowHeight(nameOfSheet, 1, 20)
+	if err_size_height != nil {
+		fmt.Println(err_size_height)
+	}
+
 	var j int = 64
 	var countDay int = 1
 	//get data to sheet of each member
@@ -69,15 +79,17 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 	f.SetCellValue(nameOfSheet, "A4", "Remaining Hours")
 	f.SetCellValue(nameOfSheet, "A5", "Hours")
 
-	for i:= 0; i < len(dataDaily); i += 3 {
+	for i := 0; i < len(dataDaily); i += 4 {
 		date := dataDaily[i]
 		remainingTasks := dataDaily[i+1]
 		remainingHours := dataDaily[i+2]
+		remainingHoursLinear := dataDaily[i+3]
 		f.SetCellValue(nameOfSheet, string((j+2))+"1", date)
 		//remainingTasksInt, err := strconv.Atoi(remainingTasks)
-        f.SetCellValue(nameOfSheet, string((j+2))+"2", remainingTasks) //
-		f.SetCellValue(nameOfSheet, string((j+2))+"3", utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, int32(totalTask)))
-		f.SetCellValue(nameOfSheet, string((j+2))+"4", remainingHours) //
+		f.SetCellValue(nameOfSheet, string((j+2))+"2", utils.ConvertStringToInt(remainingTasks)) //
+		f.SetCellValue(nameOfSheet, string((j+2))+"3", utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, int32(totalTask)), 2))
+		f.SetCellValue(nameOfSheet, string((j+2))+"4", utils.ConvertStringToInt(remainingHours))       //
+		f.SetCellValue(nameOfSheet, string((j+2))+"5", utils.ConvertStringToInt(remainingHoursLinear)) //
 		j += 1
 		countDay += 1
 	}
@@ -86,8 +98,6 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		fmt.Println(err)
 	}
 }
-
-
 
 func DrawLine(nameOfSheet string) {
 	f, err := excelize.OpenFile("Book1.xlsx")
@@ -609,18 +619,22 @@ func DrawClusteredColumnChart(name_sheet string) {
 			logger.Errorln(err)
 		}
 	}()
-	
+
 	rowHead := string(int('B'))
 	rowEnd := string(int('B') + 11)
-	if err := f.AddChart(name_sheet, "H10", &excelize.Chart{
+	if err := f.AddChart(name_sheet, "G10", &excelize.Chart{
 		Type: excelize.Col,
 		Series: []excelize.ChartSeries{
 			{
-                Name:		name_sheet + "Remaining",    
-				Categories: name_sheet + "!" + "$" + rowHead + "$4" + ":" + "$" + rowEnd + "$4",
-                Values:     name_sheet + "!" + "$" + rowHead + "$5" + ":" + "$" + rowEnd + "$5",
-            },
-
+				//Name:       name_sheet + "!$A$5",
+				Categories: name_sheet + "!" + "$" + rowHead + "$1" + ":" + "$" + rowEnd + "$1",
+				Values:     name_sheet + "!" + "$" + rowHead + "$5" + ":" + "$" + rowEnd + "$5",
+			},
+			{
+				//Name:       name_sheet + "!$A$4",
+				Categories: name_sheet + "!" + "$" + rowHead + "$1" + ":" + "$" + rowEnd + "$1",
+				Values:     name_sheet + "!" + "$" + rowHead + "$4" + ":" + "$" + rowEnd + "$4",
+			},
 		},
 		Format: excelize.GraphicOptions{
 			OffsetX: 15,

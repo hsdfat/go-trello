@@ -64,7 +64,7 @@ func (list *DateLinkedList) PrintLinkList() {
 
 func (list *DateLinkedList) calculateRemainingTasksDaily() map[string]int32 {
 	var remainingTasks int32 = 0
-	remainingTasksData := make(map[string]int32)  
+	remainingTasksData := make(map[string]int32)
 	if list.head == nil {
 		logger.Debugln("List is empty")
 		return nil
@@ -80,15 +80,13 @@ func (list *DateLinkedList) calculateRemainingTasksDaily() map[string]int32 {
 		logger.Debugln("&1", stat.Date.Format("02-01-2006"))
 		logger.Debugln("&2", remainingTasks)
 		remainingTasksData[stat.Date.Format("02-01-2006")] = remainingTasks
-
-		// logger.Debugln(fmt.Sprintf("date [%s]: new task (done/progress/total): %d/%d/%d, new hour (done/progress/total): %d/%d/%d\t",
-		// 	stat.Date.Format("02-01-2006"), stat.NDoneTasks, stat.NProgressTasks, stat.NTasks, stat.NDoneHours, stat.NProgressHours, stat.NHours))
 		current = current.next
 	}
 	return remainingTasksData
 }
 
-func (list *DateLinkedList) calculateRemainingTasksDailyList() []string {
+// calculate remaining hours of each day for SMF team
+func (list *DateLinkedList) calculateRemainingTasksDailyList(numberOfMembers int, linear_hours int) []string {
 	var remainingTasks int32 = 0
 	var remainingHours int32 = 0
 	remainingTasksData := []string{}
@@ -97,8 +95,7 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList() []string {
 		return nil
 	}
 	current := list.head
-	i := current   
-	DailyTrackingStats.CountDaysInSprint()
+	//i := current
 	for current != nil {
 		stat := current.stat
 		if stat == nil {
@@ -108,7 +105,7 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList() []string {
 
 		remainingTasks += stat.NTasks - stat.NProgressTasks - stat.NDoneTasks
 		remainingHours += stat.NHours - stat.NProgressHours - stat.NDoneHours
-		linear_hours *=  
+		linear_hours -= 8 * numberOfMembers
 
 		logger.Debugln("&1", stat.Date.Format("02-01-2006"))
 		logger.Debugln("&2", remainingTasks)
@@ -116,6 +113,7 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList() []string {
 		//remainingTasksData = append(remainingTasksData, fmt.Sprintf("%s", remainingTasks))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingTasks)))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingHours)))
+		remainingTasksData = append(remainingTasksData, strconv.Itoa(linear_hours))
 		// logger.Debugln(fmt.Sprintf("date [%s]: new task (done/progress/total): %d/%d/%d, new hour (done/progress/total): %d/%d/%d\t",
 		// 	stat.Date.Format("02-01-2006"), stat.NDoneTasks, stat.NProgressTasks, stat.NTasks, stat.NDoneHours, stat.NProgressHours, stat.NHours))
 		current = current.next
@@ -210,18 +208,11 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 
 		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
 		fmt.Println("************", expected_task)
-		f.SetCellValue(
-			memberStat.Name,
-			string((i+2))+"3",
-			expected_task,
-		)
+		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task)
 		countDay += 1
 		i += 1
 		numberOfTasksNeedDone = numberOfTasksNeedDone + memberStat.NTasks - memberStat.NDoneTasks
 		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
-		//DrawLineChart(f, memberStat.FullName)
-		//name_sheet := memberStat.Name
-		//fmt.Println("@@@: ", name_sheet)
 
 		//set size of coloum
 		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)
@@ -242,92 +233,6 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		fmt.Println(err)
 	}
 }
-
-// func (list *DateLinkedList) ExportDataOfSMFTeamToExcel(nameOfSheet string, id string, totalTask int32, numberOfSprint int, totalHours int32) {
-// 	numberOfTasksNeedDone := totalTask
-// 	numberOfRemainingHours := totalHours
-
-// 	//export to excel
-// 	f, err := excelize.OpenFile("Book1.xlsx")
-// 	if err != nil {
-// 		logger.Errorln(err)
-// 	}
-// 	defer func() {
-// 		// Close the spreadsheet.
-// 		if err := f.Close(); err != nil {
-// 			logger.Errorln(err)
-// 		}
-// 	}()
-
-// 	if list.head == nil {
-// 		logger.Debugln("List is empty")
-// 		return
-// 	}
-
-// 	current := list.head
-// 	var i int = 64
-// 	var countDay int = 1
-// 	for current != nil {
-// 		stat := current.stat
-// 		if stat == nil {
-// 			current = current.next
-// 			continue
-// 		}
-// 		memberStat, ok := stat.MemberStats[id]
-// 		if !ok {
-// 			current = current.next
-// 			continue
-// 		}
-// 		//get data to sheet of each member
-// 		f.SetCellValue(nameOfSheet, "A1", "Date")
-// 		f.SetCellValue(nameOfSheet, "A2", "Tasks")
-// 		f.SetCellValue(nameOfSheet, "A3", "Expected")
-// 		f.SetCellValue(nameOfSheet, "A4", "Hours")
-
-// 		// Create a new sheet.
-// 		index, err := f.NewSheet(nameOfSheet)
-// 		if err != nil {
-// 			logger.Errorln(err)
-// 		}
-// 		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
-// 		fmt.Println("$$: ", string((i+2))+"1")
-// 		f.SetCellValue(memberStat.Name, string((i+2))+"1", date)
-// 		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
-
-// 		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
-// 		fmt.Println("************", expected_task)
-// 		f.SetCellValue(
-// 			memberStat.Name,
-// 			string((i+2))+"3",
-// 			expected_task,
-// 		)
-// 		countDay += 1
-// 		i += 1
-// 		numberOfTasksNeedDone = numberOfTasksNeedDone + memberStat.NTasks - memberStat.NDoneTasks
-// 		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
-// 		//DrawLineChart(f, memberStat.FullName)
-// 		name_sheet := memberStat.Name
-// 		fmt.Println("@@@: ", name_sheet)
-
-// 		//set size of coloum
-// 		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)
-// 		if err_size_column != nil {
-// 			fmt.Println(err_size_column)
-// 		}
-
-// 		err_size_height := f.SetRowHeight(memberStat.Name, 1, 20)
-// 		if err_size_height != nil {
-// 			fmt.Println(err_size_height)
-// 		}
-
-// 		f.SetActiveSheet(index)
-// 		current = current.next
-// 	}
-
-// 	if err := f.SaveAs("Book1.xlsx"); err != nil {
-// 		fmt.Println(err)
-// 	}
-// }
 
 func (list *DateLinkedList) TrackingTaskCreationByDate(task *Task, wg *sync.WaitGroup) {
 	defer wg.Done()

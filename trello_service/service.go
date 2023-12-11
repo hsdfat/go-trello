@@ -2,12 +2,12 @@ package trello_service
 
 import (
 	"fmt"
-	"go-trello/logger"
-	"strconv"
-	"time"
 	"github.com/adlio/trello"
 	"github.com/spf13/viper"
 	"github.com/xuri/excelize/v2"
+	"go-trello/logger"
+	"strconv"
+	"time"
 )
 
 var c *TrelloClient // Using only one instance like singleton
@@ -235,20 +235,12 @@ func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 }
 
 func ExportDataOfDailyToExcel(memberData *TrelloClient) {
-	// for memberId, _ := range memberData.Members {
-	// 	totalTasks := memberData.MemberStats[memberId].NTasks
-	// 	totalHours := memberData.MemberStats[memberId].NHours
-	// 	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
-
-	// 	memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours)
-	// 	DrawLineChart(memberData.MemberStats[memberId].Name)
-	// }
-	
-	//dataDaily := memberData.DailyTrackingStats.calculateRemainingTasksDaily()
-	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList()
-	//sort.Strings(dataDaily)
-	logger.Debugln("^^^: ", dataDailyList) 
+	numberOfMembers := len(memberData.Members)
 	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+	logger.Debugln("!!!2: ", numberOfMembers)
+	initTotalTime := 8 * numberOfMembers * numberOfSprint
+	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList(numberOfMembers, initTotalTime)
+	//sort.Strings(dataDaily)
+	logger.Debugln("^^^: ", dataDailyList)
 	SetCellValue("Daily", dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint)
-	
 }
