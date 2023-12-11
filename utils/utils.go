@@ -22,3 +22,12 @@ func ConvertStringToInt(str string) int {
 	}
 	return result
 }
+
+// compare day, month, year
+// func IsDateEqual(today *time.Time, time *time.Time) bool {
+// 	yearOfToday, monthOfToday, today := today
+// 	compareYearTime, compareMonthTime, compareDayTime := time.Now().Date()
+// 	if compareYearTime == yearOfToday && compareMonthTime == monthOfToday && compareDayTime == today{
+		
+// 	}
+// }

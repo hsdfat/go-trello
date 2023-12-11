@@ -4,3 +4,4 @@ config/config.yaml
 vendor
 *.xlsx
 .idea
+.DS_Store

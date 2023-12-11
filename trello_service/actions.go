@@ -25,7 +25,12 @@ func (c *TrelloClient) GetActionsByCard(task *Task, wgParent *sync.WaitGroup) (e
 	}
 	wg := new(sync.WaitGroup)
 	wg.Add(len(actions))
+	//logger.Debugln("len actions: ", len(actions))
 	for _, action := range actions {
+		//logger.Debugln("11-12: Action:", action.Data.Card.Name)
+
+		// logger.Debugln("11-12: Action:", action.Data.ListBefore.Name)
+		// logger.Debugln("11-12: Action:", action.Data.ListAfter.Name)
 		go c.DailyTrackingStats.TrackingAction(task, action, wg)
 	}
 	wg.Wait()

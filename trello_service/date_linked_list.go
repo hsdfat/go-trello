@@ -62,29 +62,6 @@ func (list *DateLinkedList) PrintLinkList() {
 	}
 }
 
-func (list *DateLinkedList) calculateRemainingTasksDaily() map[string]int32 {
-	var remainingTasks int32 = 0
-	remainingTasksData := make(map[string]int32)
-	if list.head == nil {
-		logger.Debugln("List is empty")
-		return nil
-	}
-	current := list.head
-	for current != nil {
-		stat := current.stat
-		if stat == nil {
-			current = current.next
-			continue
-		}
-		remainingTasks += stat.NTasks - stat.NProgressTasks - stat.NDoneTasks
-		logger.Debugln("&1", stat.Date.Format("02-01-2006"))
-		logger.Debugln("&2", remainingTasks)
-		remainingTasksData[stat.Date.Format("02-01-2006")] = remainingTasks
-		current = current.next
-	}
-	return remainingTasksData
-}
-
 // calculate remaining hours of each day for SMF team
 func (list *DateLinkedList) calculateRemainingTasksDailyList(numberOfMembers int, linear_hours int) []string {
 	var remainingTasks int32 = 0
@@ -207,7 +184,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
 
 		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
-		fmt.Println("************", expected_task)
+		//fmt.Println("************", expected_task)
 		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task)
 		countDay += 1
 		i += 1
@@ -256,6 +233,30 @@ func (list *DateLinkedList) TrackingTaskCreationByDate(task *Task, wg *sync.Wait
 	}
 }
 
+func (list *DateLinkedList) TrackingActionByDate(task *Task, wg *sync.WaitGroup) {
+	defer wg.Done()
+	if list.head == nil {
+		logger.Debugln("List is empty")
+		return
+	}
+	if task.CreationTime == nil {
+		logger.Debugln("Task is not has creation time")
+		return
+	}
+	current := list.head
+	for current != nil {
+		stat := current.stat
+		//fmt.Print(fmt.Sprintf("111: %s\n", stat.Date.Format("02-01-2006")))
+		if endOfDay(stat.Date).After(*task.CreationTime) {
+			atomic.AddInt32(&stat.NTasks, 1)
+			atomic.AddInt32(&stat.NHours, task.Hour)
+			//logger.Debugln("Tracking Action By Date: date before: ", stat.DateBefore)
+			return
+		}
+		current = current.next
+	}
+}
+
 func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -264,13 +265,23 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 		logger.Debugln("List is empty")
 		return
 	}
+	// year, month, day := time.Now().Date()
+	// logger.Debugln("Today date: %d:%d:%d", year, int(month), day)
+	// logger.Debugln(time.Now())
 	current := list.head
 	for current != nil {
 		stat := current.stat
 		if endOfDay(stat.Date).After(action.Date) {
+			// if stat.Date.Day() == day {
+				
+			// }
+			
+			//logger.Debugln("Date current: ", stat.Date)
+
 			if action.Data != nil {
 				var taskDone, taskUndone, taskInProgress, taskNotInProgress bool
 				if action.Data.ListAfter != nil {
+					// logger.Debugln("List After: ", action.Data.ListAfter.Name)
 					if action.Data.ListAfter.ID == ins.DoneList {
 						taskDone = true
 						atomic.AddInt32(&stat.NDoneTasks, 1)
@@ -280,9 +291,9 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						atomic.AddInt32(&stat.NProgressTasks, 1)
 						atomic.AddInt32(&stat.NProgressHours, task.Hour)
 					}
-
 				}
 				if action.Data.ListBefore != nil {
+					// logger.Debugln("List Before: ", action.Data.ListBefore.Name)
 					if action.Data.ListBefore.ID == ins.DoneList {
 						taskUndone = true
 						atomic.AddInt32(&stat.NDoneTasks, -1)
@@ -301,22 +312,40 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						memberIdList := card.IDMembers
 						for _, id := range memberIdList {
 							memberStat, ok := stat.MemberStats[id]
-							if ok {
+							// logger.Debugln("stat.Date.Day: ", stat.Date.Day())
+							// logger.Debugln("day: ", day)
+							if ok && stat.Date.Day() == 11{
 								if taskDone {
 									atomic.AddInt32(&memberStat.NDoneTasks, 1)
 									atomic.AddInt32(&memberStat.NDoneHours, task.Hour)
+									logger.Debugln("---------")
+									logger.Debugln("Task Done: 11-12-Tracking Action6: ", memberStat.FullName)
+									logger.Debugln("Task Done: 11-12-Tracking Action7: ", action.Data.Card.Name)
+									logger.Debugln("---------")
 								}
 								if taskInProgress {
 									atomic.AddInt32(&memberStat.NProgressTasks, 1)
 									atomic.AddInt32(&memberStat.NProgressHours, task.Hour)
+									logger.Debugln("---------")
+									logger.Debugln("Inprogress: 11-12-Tracking Action6: ", memberStat.FullName)
+									logger.Debugln("Inprogress: 11-12-Tracking Action7: ", action.Data.Card.Name)
+									logger.Debugln("---------")
 								}
 								if taskUndone {
 									atomic.AddInt32(&memberStat.NDoneTasks, -1)
 									atomic.AddInt32(&memberStat.NDoneHours, -1*task.Hour)
+									logger.Debugln("---------")
+									logger.Debugln("Undone: 11-12-Tracking Action6: ", memberStat.FullName)
+									logger.Debugln("Undone: 11-12-Tracking Action7: ", action.Data.Card.Name)
+									logger.Debugln("---------")
 								}
 								if taskNotInProgress {
 									atomic.AddInt32(&memberStat.NProgressTasks, -1)
 									atomic.AddInt32(&memberStat.NProgressHours, -1*task.Hour)
+									logger.Debugln("---------")
+									logger.Debugln("Not in progress: 11-12-Tracking Action6: ", memberStat.FullName)
+									logger.Debugln("Not in progress: 11-12-Tracking Action7: ", action.Data.Card.Name)
+									logger.Debugln("---------")
 								}
 							}
 						}

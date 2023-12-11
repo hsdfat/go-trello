@@ -95,6 +95,7 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 
 		// Daily Statistics
 		go c.DailyTrackingStats.TrackingTaskCreationByDate(task, wg)
+		//go c.DailyTrackingStats.TrackingActionByDate(task, wg)
 		go c.GetActionsByCard(task, wg)
 	}
 	wg.Wait()

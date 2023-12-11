@@ -42,6 +42,7 @@ type MemberStats struct {
 	NProgressHours int32
 	NDoneTasks     int32
 	NDoneHours     int32
+	Actions		   *trello.Action        
 }
 
 type DailyTrackingStats struct {
