@@ -47,7 +47,7 @@ func main() {
 	}
 
 	ins := trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
-
+	ins.DailyTrackingStats.PrintMemberActions()
 	trello_service.ExportTotalMemberToCsv(ins)
 	trello_service.DrawPieChart()
 	trello_service.ExportDataOfMembersToExcel(ins)
@@ -55,4 +55,5 @@ func main() {
 	trello_service.DrawDailyLineChart("Daily")
 	trello_service.DrawClusteredColumnChart("Daily")
 	//trello_service.DrawLineChartForTotal("SMF")
+
 }

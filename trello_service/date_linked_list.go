@@ -84,14 +84,6 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList(numberOfMembers int
 		remainingTasksData = append(remainingTasksData, stat.Date.Format("02-01-2006"))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingTasks)))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingHours)))
-		logger.Debug("stat.NHours: ", stat.NHours)
-		logger.Debug("stat.NProgressHours: ", stat.NProgressHours)
-		logger.Debug("stat.NDoneHours: ", stat.NDoneHours)
-		logger.Debug("stat.NTasks: ", stat.NTasks)
-		logger.Debug("remainingTasks: ", remainingTasks)
-		logger.Debug("remainingHours: ", remainingHours)
-		logger.Debug("stat.NProgressTasks: ", stat.NProgressTasks)
-		logger.Debug("stat.NDoneTasks: ", stat.NDoneTasks)
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(linear_hours))
 		current = current.next
 	}
@@ -233,6 +225,49 @@ func (list *DateLinkedList) TrackingTaskCreationByDate(task *Task, wg *sync.Wait
 	}
 }
 
+func (list *DateLinkedList) PrintMemberActions() {
+	if list.head == nil {
+		logger.Debug("List is empty")
+		return
+	}
+	current := list.head
+	for current != nil {
+		stat := current.stat
+		for key, value := range stat.MemberActions {
+			logger.Debug("------------------")
+			logger.Debug("Key: ", key)
+			logger.Debug("Before: ", value.ListBefore)
+			logger.Debug("After: ", value.ListAfter)
+			logger.Debug("Name: ", value.NameOfMember)
+			logger.Debug("Task: ", value.ContentOfTask)
+			logger.Debug("Action types: ", value.ActionTypes)
+		}
+		current = current.next
+	}
+}
+
+// func (list *DailyTrackingStats) GetMemberActionsDaily(day string) []string {
+// 	if 
+
+// 	if list.head == nil {
+// 		logger.Debug("List is empty")	
+// 	}
+// 	current := list.head
+// 	for current!= nil {
+// 		stat := current.stat
+// 		for day, infoAction := range stat.MemberActions {
+// 			if day {
+				
+// 			}
+// 		}
+// 	}
+
+// }
+
+func (list *DateLinkedList) ExportMemberActionsDailyToExcel(memberData *TrelloClient) {
+	//memberData.DailyTrackingStats.
+}
+
 func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -266,7 +301,9 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						atomic.AddInt32(&stat.NDoneTasks, -1)
 						atomic.AddInt32(&stat.NDoneHours, -1*task.Hour)
 					} else if !CheckListContains(ins.SkipLists, action.Data.ListBefore.ID) {
-						taskNotInProgress = true
+						if !taskInProgress {
+							taskNotInProgress = true
+						}
 						atomic.AddInt32(&stat.NProgressTasks, -1)
 						atomic.AddInt32(&stat.NProgressHours, -1*task.Hour)
 					}
@@ -281,40 +318,55 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 							memberStat, ok := stat.MemberStats[id]
 							// logger.Debugln("stat.Date.Day: ", stat.Date.Day())
 							// logger.Debugln("day: ", day)
-
 							//if ok && stat.Date.Day() == 11 {
 							if ok {
+								var needSaved = false
+								memberAction := MemberActions{
+									// ListBefore: action.Data.ListBefore.Name,
+									// ListAfter: action.Data.ListAfter.Name,
+									NameOfMember:  memberStat.FullName,
+									ContentOfTask: action.Data.Card.Name,
+								}
+								if action.Data.ListBefore != nil {
+									memberAction.ListBefore = action.Data.ListBefore.Name
+								}
+								if action.Data.ListAfter != nil {
+									memberAction.ListAfter = action.Data.ListAfter.Name
+								}
 								if taskDone {
+									needSaved = true
 									atomic.AddInt32(&memberStat.NDoneTasks, 1)
 									atomic.AddInt32(&memberStat.NDoneHours, task.Hour)
-									logger.Debugln("---------")
-									logger.Debugln("Task Done: 11-12-Tracking Action6: ", memberStat.FullName)
-									logger.Debugln("Task Done: 11-12-Tracking Action7: ", action.Data.Card.Name)
-									logger.Debugln("---------")
+									memberAction.ActionTypes = append(memberAction.ActionTypes, "Done")
+									// memberAction_done := MemberActions{stat.Date, action.Data.ListBefore.Name, action.Data.ListAfter.Name, memberStat.FullName, action.Data.Card.Name}
+									//logger.Debug("#", memberAction_done)
 								}
 								if taskInProgress {
+									needSaved = true
 									atomic.AddInt32(&memberStat.NProgressTasks, 1)
 									atomic.AddInt32(&memberStat.NProgressHours, task.Hour)
-									logger.Debugln("---------")
-									logger.Debugln("Inprogress: 11-12-Tracking Action6: ", memberStat.FullName)
-									logger.Debugln("Inprogress: 11-12-Tracking Action7: ", action.Data.Card.Name)
-									logger.Debugln("---------")
+									memberAction.ActionTypes = append(memberAction.ActionTypes, "InProgress")
+									// memberAction_inprogress := MemberActions{stat.Date, action.Data.ListBefore.Name, action.Data.ListAfter.Name, memberStat.FullName, action.Data.Card.Name}
+									// break
 								}
 								if taskUndone {
+									needSaved = true
 									atomic.AddInt32(&memberStat.NDoneTasks, -1)
 									atomic.AddInt32(&memberStat.NDoneHours, -1*task.Hour)
-									logger.Debugln("---------")
-									logger.Debugln("Undone: 11-12-Tracking Action6: ", memberStat.FullName)
-									logger.Debugln("Undone: 11-12-Tracking Action7: ", action.Data.Card.Name)
-									logger.Debugln("---------")
+									memberAction.ActionTypes = append(memberAction.ActionTypes, "Undone")
+									// memberAction_undone := MemberActions{stat.Date, action.Data.ListBefore.Name, action.Data.ListAfter.Name, memberStat.FullName, action.Data.Card.Name}
 								}
 								if taskNotInProgress {
+									needSaved = true
 									atomic.AddInt32(&memberStat.NProgressTasks, -1)
 									atomic.AddInt32(&memberStat.NProgressHours, -1*task.Hour)
-									logger.Debugln("---------")
-									logger.Debugln("Not in progress: 11-12-Tracking Action6: ", memberStat.FullName)
-									logger.Debugln("Not in progress: 11-12-Tracking Action7: ", action.Data.Card.Name)
-									logger.Debugln("---------")
+									memberAction.ActionTypes = append(memberAction.ActionTypes, "NotInProgress")
+								}
+
+								if needSaved {
+									stat.Mutex.Lock()
+									stat.MemberActions[action.Date.String()] = &memberAction
+									stat.Mutex.Unlock()
 								}
 							}
 						}
@@ -345,6 +397,29 @@ func (list *DateLinkedList) InitMembersDailyTracking(memberMap map[string]*Membe
 		}
 		current = current.next
 	}
+}
+
+func (list *DateLinkedList) SaveMemberActionsEachDay(date *time.Time, listBefore string, listAfter string, nameOfMember string, contentOfTask string) []string {
+	memberActionsEachDay := []string{}
+	if list.head == nil {
+		logger.Debug("List of members actions each day is empty")
+		return nil
+	}
+	current := list.head
+	for current != nil {
+		stat := current.stat
+		if stat == nil {
+			current = current.next
+			continue
+		}
+		memberActionsEachDay = append(memberActionsEachDay, stat.Date.Format("02-01-2006"))
+		memberActionsEachDay = append(memberActionsEachDay, listBefore)
+		memberActionsEachDay = append(memberActionsEachDay, listAfter)
+		memberActionsEachDay = append(memberActionsEachDay, nameOfMember)
+		memberActionsEachDay = append(memberActionsEachDay, contentOfTask)
+		current = current.next
+	}
+	return memberActionsEachDay
 }
 
 func endOfDay(t time.Time) time.Time {

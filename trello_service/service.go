@@ -85,11 +85,11 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	}
 	instance.PrintMemberStatistics()
 
-	for memberId, _ := range instance.Members {
-		instance.DailyTrackingStats.PrintMemberStatTracking(memberId)
-		logger.Debug("______________________________", memberId)
-		instance.DailyTrackingStats.PrintLinkList()
-	}
+	// for memberId, _ := range instance.Members {
+	// 	instance.DailyTrackingStats.PrintMemberStatTracking(memberId)
+	// 	logger.Debug("______________________________", memberId)
+	// 	instance.DailyTrackingStats.PrintLinkList()
+	// }
 
 	return instance
 }
@@ -238,6 +238,6 @@ func ExportDataOfDailyToExcel(memberData *TrelloClient) {
 	logger.Debugln("!!!2: ", numberOfMembers)
 	initTotalTime := 8 * numberOfMembers * numberOfSprint
 	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList(numberOfMembers, initTotalTime)
-	logger.Debugln("^^^: ", dataDailyList)
+	//logger.Debugln("^^^: ", dataDailyList)
 	SetCellValue("Daily", dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint)
 }

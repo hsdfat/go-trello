@@ -39,9 +39,9 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 	}
 	for _, card := range cards {
 		ok, hour := ValidateTaskName(card.Name)
-		logger.Debug("card name: ", card.Name)
-		logger.Debug("ok: ", ok)
-		logger.Debug("hour: ", hour)
+		// logger.Debug("card name: ", card.Name)
+		// logger.Debug("ok: ", ok)
+		// logger.Debug("hour: ", hour)
 		if ok {
 
 			task := &Task{
@@ -108,18 +108,18 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 // ValidateTasksName validates card name is task type or not
 func ValidateTaskName(name string) (bool, int32) {
 	re := regexp.MustCompile(TASK_NAME_PATTERN)
-	logger.Debug("re123: ", re)
+	//logger.Debug("re123: ", re)
 	if !re.MatchString(name) {
 		return false, 0
 	}
 	matches := re.FindStringSubmatch(name)
-	logger.Debug("matches123: ", matches)
+	// logger.Debug("matches123: ", matches)
 	if len(matches) < 3 {
 		return true, 0
 	}
 	timeValue := matches[2]
-	logger.Debug("time value 123: ", timeValue)
-	logger.Debug("matches[1]: ", matches[1])
+	// logger.Debug("time value 123: ", timeValue)
+	// logger.Debug("matches[1]: ", matches[1])
 	timeValueInt, err := strconv.Atoi(timeValue)
 	if err != nil {
 		return true, 0

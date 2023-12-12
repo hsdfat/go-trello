@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/adlio/trello"
@@ -31,6 +32,15 @@ type TrelloClient struct {
 	DailyTrackingStats *DateLinkedList
 }
 
+type MemberActions struct {
+	Time          time.Time
+	ListBefore    string
+	ListAfter     string
+	NameOfMember  string
+	ContentOfTask string
+	ActionTypes []string
+}
+
 type MemberStats struct {
 	Name           string
 	Email          string
@@ -42,14 +52,16 @@ type MemberStats struct {
 	NProgressHours int32
 	NDoneTasks     int32
 	NDoneHours     int32
-	Actions		   *trello.Action        
+	Actions        *trello.Action
 }
 
 type DailyTrackingStats struct {
 	DateBefore time.Time
 	Date       time.Time
+	Mutex      *sync.Mutex
 
 	MemberStats    map[string]*MemberStats
+	MemberActions  map[string]*MemberActions
 	NTasks         int32
 	NHours         int32
 	NProgressTasks int32
