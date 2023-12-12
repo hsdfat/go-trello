@@ -72,27 +72,27 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList(numberOfMembers int
 		return nil
 	}
 	current := list.head
-	//i := current
 	for current != nil {
 		stat := current.stat
 		if stat == nil {
 			current = current.next
 			continue
 		}
-
 		remainingTasks += stat.NTasks - stat.NProgressTasks - stat.NDoneTasks
 		remainingHours += stat.NHours - stat.NProgressHours - stat.NDoneHours
 		linear_hours -= 8 * numberOfMembers
-
-		logger.Debugln("&1", stat.Date.Format("02-01-2006"))
-		logger.Debugln("&2", remainingTasks)
 		remainingTasksData = append(remainingTasksData, stat.Date.Format("02-01-2006"))
-		//remainingTasksData = append(remainingTasksData, fmt.Sprintf("%s", remainingTasks))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingTasks)))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingHours)))
+		logger.Debug("stat.NHours: ", stat.NHours)
+		logger.Debug("stat.NProgressHours: ", stat.NProgressHours)
+		logger.Debug("stat.NDoneHours: ", stat.NDoneHours)
+		logger.Debug("stat.NTasks: ", stat.NTasks)
+		logger.Debug("remainingTasks: ", remainingTasks)
+		logger.Debug("remainingHours: ", remainingHours)
+		logger.Debug("stat.NProgressTasks: ", stat.NProgressTasks)
+		logger.Debug("stat.NDoneTasks: ", stat.NDoneTasks)
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(linear_hours))
-		// logger.Debugln(fmt.Sprintf("date [%s]: new task (done/progress/total): %d/%d/%d, new hour (done/progress/total): %d/%d/%d\t",
-		// 	stat.Date.Format("02-01-2006"), stat.NDoneTasks, stat.NProgressTasks, stat.NTasks, stat.NDoneHours, stat.NProgressHours, stat.NHours))
 		current = current.next
 	}
 	return remainingTasksData
@@ -233,30 +233,6 @@ func (list *DateLinkedList) TrackingTaskCreationByDate(task *Task, wg *sync.Wait
 	}
 }
 
-func (list *DateLinkedList) TrackingActionByDate(task *Task, wg *sync.WaitGroup) {
-	defer wg.Done()
-	if list.head == nil {
-		logger.Debugln("List is empty")
-		return
-	}
-	if task.CreationTime == nil {
-		logger.Debugln("Task is not has creation time")
-		return
-	}
-	current := list.head
-	for current != nil {
-		stat := current.stat
-		//fmt.Print(fmt.Sprintf("111: %s\n", stat.Date.Format("02-01-2006")))
-		if endOfDay(stat.Date).After(*task.CreationTime) {
-			atomic.AddInt32(&stat.NTasks, 1)
-			atomic.AddInt32(&stat.NHours, task.Hour)
-			//logger.Debugln("Tracking Action By Date: date before: ", stat.DateBefore)
-			return
-		}
-		current = current.next
-	}
-}
-
 func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -265,19 +241,10 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 		logger.Debugln("List is empty")
 		return
 	}
-	// year, month, day := time.Now().Date()
-	// logger.Debugln("Today date: %d:%d:%d", year, int(month), day)
-	// logger.Debugln(time.Now())
 	current := list.head
 	for current != nil {
 		stat := current.stat
 		if endOfDay(stat.Date).After(action.Date) {
-			// if stat.Date.Day() == day {
-				
-			// }
-			
-			//logger.Debugln("Date current: ", stat.Date)
-
 			if action.Data != nil {
 				var taskDone, taskUndone, taskInProgress, taskNotInProgress bool
 				if action.Data.ListAfter != nil {
@@ -314,7 +281,9 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 							memberStat, ok := stat.MemberStats[id]
 							// logger.Debugln("stat.Date.Day: ", stat.Date.Day())
 							// logger.Debugln("day: ", day)
-							if ok && stat.Date.Day() == 11{
+
+							//if ok && stat.Date.Day() == 11 {
+							if ok {
 								if taskDone {
 									atomic.AddInt32(&memberStat.NDoneTasks, 1)
 									atomic.AddInt32(&memberStat.NDoneHours, task.Hour)
@@ -351,7 +320,6 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						}
 					}
 				}
-
 			}
 			return
 		}

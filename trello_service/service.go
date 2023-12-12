@@ -86,9 +86,9 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	instance.PrintMemberStatistics()
 
 	for memberId, _ := range instance.Members {
-		//instance.DailyTrackingStats.PrintMemberStatTracking(memberId)
-		logger.Debugln("______________________________", memberId)
-		//instance.DailyTrackingStats.PrintLinkList()
+		instance.DailyTrackingStats.PrintMemberStatTracking(memberId)
+		logger.Debug("______________________________", memberId)
+		instance.DailyTrackingStats.PrintLinkList()
 	}
 
 	return instance

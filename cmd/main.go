@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"go-trello/logger"
 	"go-trello/trello_service"
 	"log"
 	"strings"
@@ -13,6 +14,7 @@ import (
 func main() {
 	fmt.Println("Hello, World!")
 	binaryPath := "./config/"
+	logger.SetLogLevel(5)
 	viper.AddConfigPath(binaryPath)
 	viper.AddConfigPath(".")
 	viper.SetConfigName("config")
