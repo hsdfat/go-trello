@@ -4,6 +4,14 @@ import (
 	"go-trello/logger"
 	"math"
 	"strconv"
+	"time"
+)
+
+// name sheet
+var (
+	MemberActionDaily = "Daily"
+	NameSMFTeam       = "SMF"
+	NameOfFile        = "SMF-Trello.xlsx"
 )
 
 func GetYValue(a float64, x int, b int32) float64 {
@@ -24,10 +32,10 @@ func ConvertStringToInt(str string) int {
 }
 
 // compare day, month, year
-// func IsDateEqual(today *time.Time, time *time.Time) bool {
-// 	yearOfToday, monthOfToday, today := today
-// 	compareYearTime, compareMonthTime, compareDayTime := time.Now().Date()
-// 	if compareYearTime == yearOfToday && compareMonthTime == monthOfToday && compareDayTime == today{
-		
-// 	}
-// }
+func IsDateEqual(time1 *time.Time, time2 *time.Time) bool {
+	if (time1.Year() == time2.Year()) && time1.Month() == time2.Month() && time1.Day() == time2.Day() {
+		return true
+	} else {
+		return false
+	}
+}

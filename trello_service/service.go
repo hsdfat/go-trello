@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"github.com/xuri/excelize/v2"
 	"go-trello/logger"
+	"go-trello/utils"
 	"strconv"
 	"time"
 )
@@ -158,67 +159,10 @@ func ExportTotalMemberToCsv(memberData *TrelloClient) error {
 
 	f.SetActiveSheet(index)
 	// Save spreadsheet by the given path.
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 	return nil
-}
-
-func DrawPieChart() {
-	//get data
-	f, err := excelize.OpenFile("Book1.xlsx")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer func() {
-		// Close the spreadsheet.
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-	cell, err := f.GetCellValue("SMF", "B2")
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	fmt.Println(cell)
-
-	//add chart
-	tilte_chart, err1 := f.GetCellValue("SMF", "A13")
-	if err1 != nil {
-		fmt.Println(err1)
-		return
-	}
-	if err := f.AddChart("SMF", "J1", &excelize.Chart{
-		Type: excelize.Pie,
-		Series: []excelize.ChartSeries{
-			{
-				Name:       "Amount",
-				Categories: "SMF!$B$1:$D$1",
-				Values:     "SMF!$B$13:$D$13",
-			},
-		},
-		Format: excelize.GraphicOptions{
-			OffsetX: 15,
-			OffsetY: 10,
-		},
-		Title: []excelize.RichTextRun{
-			{
-				Text: tilte_chart,
-			},
-		},
-		PlotArea: excelize.ChartPlotArea{
-			ShowPercent: true,
-		},
-	}); err != nil {
-		fmt.Println(err)
-		return
-	}
-	// Save workbook
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
-		fmt.Println(err)
-	}
 }
 
 func ExportDataOfMembersToExcel(memberData *TrelloClient) {
@@ -226,7 +170,6 @@ func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 		totalTasks := memberData.MemberStats[memberId].NTasks
 		totalHours := memberData.MemberStats[memberId].NHours
 		numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
-
 		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours)
 		DrawLineChart(memberData.MemberStats[memberId].Name)
 	}

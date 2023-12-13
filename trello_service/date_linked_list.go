@@ -129,7 +129,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 	numberOfRemainingHours := totalHours
 
 	//export to excel
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -198,7 +198,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		current = current.next
 	}
 
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 }
@@ -234,8 +234,9 @@ func (list *DateLinkedList) PrintMemberActions() {
 	for current != nil {
 		stat := current.stat
 		for key, value := range stat.MemberActions {
-			logger.Debug("------------------")
+			logger.Debug("-------------------------------------------------------")
 			logger.Debug("Key: ", key)
+			logger.Debug("Time: ", value.Time)
 			logger.Debug("Before: ", value.ListBefore)
 			logger.Debug("After: ", value.ListAfter)
 			logger.Debug("Name: ", value.NameOfMember)
@@ -246,26 +247,57 @@ func (list *DateLinkedList) PrintMemberActions() {
 	}
 }
 
-// func (list *DailyTrackingStats) GetMemberActionsDaily(day string) []string {
-// 	if 
+func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
+	var memberActions []*MemberActions
+	today := time.Now()
+	yesterday := today.AddDate(0, 0, -1)
+	if list.head == nil {
+		logger.Debug("List is empty")
+	}
+	current := list.head
+	for current != nil {
+		stat := current.stat
+		for _, infoAction := range stat.MemberActions {
+			if utils.IsDateEqual(&infoAction.Time, &yesterday) {
+				memberActions = append(memberActions, infoAction)
+			}
+		}
+		current = current.next
+	}
+	return memberActions
+}
 
-// 	if list.head == nil {
-// 		logger.Debug("List is empty")	
-// 	}
-// 	current := list.head
-// 	for current!= nil {
-// 		stat := current.stat
-// 		for day, infoAction := range stat.MemberActions {
-// 			if day {
-				
-// 			}
-// 		}
-// 	}
+func (list *DateLinkedList) GetMemberActionsSprint() []*MemberActions {
+	var memberActions []*MemberActions
+	if list.head == nil {
+		logger.Debug("List is empty")
+	}
+	current := list.head
+	for current != nil {
+		stat := current.stat
+		for _, infoAction := range stat.MemberActions {
+			memberActions = append(memberActions, infoAction)
+		}
+		current = current.next
+	}
+	return memberActions
+}
 
-// }
+func (list *DateLinkedList) ExportMemberActionsDailyToExcel() {
+	memberActions := list.GetMemberActionsDaily()
+	if memberActions == nil {
+		logger.Info("Not actions in this day: ", time.Now())
+	}
+	logger.Debug("Today: ", time.Now())
+	SetMemberActionsDaily(utils.MemberActionDaily, memberActions)
+}
 
-func (list *DateLinkedList) ExportMemberActionsDailyToExcel(memberData *TrelloClient) {
-	//memberData.DailyTrackingStats.
+func (list *DateLinkedList) ExportMemberActionsSprintToExcel() {
+	memberActions := list.GetMemberActionsSprint()
+	if memberActions == nil {
+		logger.Info("Not actions in this sprint: ", time.Now())
+	}
+	SetMemberActionsSprint(utils.NameSMFTeam, memberActions)
 }
 
 func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg *sync.WaitGroup) {
@@ -322,8 +354,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 							if ok {
 								var needSaved = false
 								memberAction := MemberActions{
-									// ListBefore: action.Data.ListBefore.Name,
-									// ListAfter: action.Data.ListAfter.Name,
+									Time:          action.Date,
 									NameOfMember:  memberStat.FullName,
 									ContentOfTask: action.Data.Card.Name,
 								}

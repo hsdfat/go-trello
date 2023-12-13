@@ -13,7 +13,7 @@ func (list *DateLinkedList) ExportDataOfDailySMFTeamToExcel(name_sheet string, i
 	numberOfRemainingHours := totalHours
 
 	//export to excel
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -70,8 +70,7 @@ func (list *DateLinkedList) ExportDataOfDailySMFTeamToExcel(name_sheet string, i
 		f.SetActiveSheet(index)
 		current = current.next
 	}
-
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-trello/logger"
 	"go-trello/trello_service"
+	"go-trello/utils"
 	"log"
 	"strings"
 	"time"
@@ -47,13 +48,15 @@ func main() {
 	}
 
 	ins := trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
-	ins.DailyTrackingStats.PrintMemberActions()
+	//ins.DailyTrackingStats.PrintMemberActions()
 	trello_service.ExportTotalMemberToCsv(ins)
-	trello_service.DrawPieChart()
+	trello_service.DrawPieChartSMF(utils.NameSMFTeam)
 	trello_service.ExportDataOfMembersToExcel(ins)
 	trello_service.ExportDataOfDailyToExcel(ins)
 	trello_service.DrawDailyLineChart("Daily")
 	trello_service.DrawClusteredColumnChart("Daily")
+	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()
+	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()
 	//trello_service.DrawLineChartForTotal("SMF")
 
 }

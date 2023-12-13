@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-trello/logger"
 	"go-trello/utils"
+	"strconv"
 	"time"
 
 	"github.com/xuri/excelize/v2"
@@ -12,7 +13,7 @@ import (
 func creatSheet(eachMemberData *MemberStats, time time.Time) {
 	nameOfSheet := eachMemberData.Name
 	//open file
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -35,14 +36,14 @@ func creatSheet(eachMemberData *MemberStats, time time.Time) {
 	f.SetCellValue(nameOfSheet, "B1", "Number Of Tasks")
 
 	f.SetActiveSheet(index)
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 }
 
 func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberOfSprint int) {
 	//open file
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		fmt.Println(err)
 		return
@@ -94,13 +95,13 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		countDay += 1
 	}
 	f.SetActiveSheet(index)
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 }
 
 func DrawLine(nameOfSheet string) {
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -138,13 +139,13 @@ func DrawLine(nameOfSheet string) {
 	if err_add_shape != nil {
 		logger.Errorln(err_add_shape)
 	}
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		logger.Errorln(err)
 	}
 }
 
 func DrawLineChart(name_sheet string) {
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -283,13 +284,13 @@ func DrawLineChart(name_sheet string) {
 	// 	logger.Errorln(err_add_shape)
 	// }
 
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 }
 
 func DrawLineChartForTotal(name_sheet string) {
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -401,13 +402,13 @@ func DrawLineChartForTotal(name_sheet string) {
 		return
 	}
 
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 }
 
 func DrawDailyLineChart(name_sheet string) {
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -502,13 +503,13 @@ func DrawDailyLineChart(name_sheet string) {
 		return
 	}
 
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 }
 
 func DrawRemainingHours(name_sheet string) {
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -603,13 +604,13 @@ func DrawRemainingHours(name_sheet string) {
 		return
 	}
 
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 }
 
 func DrawClusteredColumnChart(name_sheet string) {
-	f, err := excelize.OpenFile("Book1.xlsx")
+	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
 	}
@@ -690,8 +691,134 @@ func DrawClusteredColumnChart(name_sheet string) {
 		return
 	}
 
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
+}
 
+func DrawPieChartSMF(nameSheet string) {
+	f, err := excelize.OpenFile(utils.NameOfFile)
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			logger.Error(err)
+		}
+	}()
+
+	if err := f.AddChart(nameSheet, "A15", &excelize.Chart{
+		Type: excelize.Pie,
+		Series: []excelize.ChartSeries{
+			{
+				Name:       "Amount",
+				Categories: nameSheet + "!$B$1:$D$1",
+				Values:     nameSheet + "!$B$13:$D$13",
+			},
+		},
+		Format: excelize.GraphicOptions{
+			OffsetX: 15,
+			OffsetY: 10,
+		},
+		Title: []excelize.RichTextRun{
+			{
+				Text: nameSheet,
+			},
+		},
+		PlotArea: excelize.ChartPlotArea{
+			ShowPercent: true,
+		},
+	}); err != nil {
+		fmt.Println(err)
+		return
+	}
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
+		fmt.Println(err)
+	}
+}
+
+func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActions) {
+	f, err := excelize.OpenFile(utils.NameOfFile)
+	if err != nil {
+		logger.Error(err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			logger.Error(err)
+		}
+	}()
+	columnSizeErr := f.SetColWidth(memberActionDaily, "N", "S", 15)
+	if columnSizeErr != nil {
+		logger.Error(columnSizeErr)
+	}
+	f.SetCellValue(memberActionDaily, "N10", "Time")
+	f.SetCellValue(memberActionDaily, "O10", "List Before")
+	f.SetCellValue(memberActionDaily, "P10", "List After")
+	f.SetCellValue(memberActionDaily, "Q10", "Name")
+	f.SetCellValue(memberActionDaily, "R10", "Task")
+	f.SetCellValue(memberActionDaily, "S10", "Action Types")
+	row := 11
+	for _, memberAction := range memberActions {
+		logger.Info("**************************************************")
+		logger.Info(memberAction.Time)
+		logger.Info(memberAction.ListBefore)
+		logger.Info(memberAction.ListAfter)
+		logger.Info(memberAction.NameOfMember)
+		logger.Info(memberAction.ContentOfTask)
+		logger.Info(memberAction.ActionTypes)
+		f.SetCellValue(memberActionDaily, "N"+strconv.Itoa(row), memberAction.Time)
+		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.ListBefore)
+		f.SetCellValue(memberActionDaily, "P"+strconv.Itoa(row), memberAction.ListAfter)
+		f.SetCellValue(memberActionDaily, "Q"+strconv.Itoa(row), memberAction.NameOfMember)
+		f.SetCellValue(memberActionDaily, "R"+strconv.Itoa(row), memberAction.ContentOfTask)
+		f.SetCellValue(memberActionDaily, "S"+strconv.Itoa(row), memberAction.ActionTypes)
+		row += 1
+	}
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
+		logger.Error(err)
+	}
+}
+
+func SetMemberActionsSprint(memberActionDaily string, memberActions []*MemberActions) {
+	f, err := excelize.OpenFile(utils.NameOfFile)
+	if err != nil {
+		logger.Error(err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			logger.Error(err)
+		}
+	}()
+	columnSizeErr := f.SetColWidth(memberActionDaily, "J", "O", 15)
+	if columnSizeErr != nil {
+		logger.Error(columnSizeErr)
+	}
+	f.SetCellValue(memberActionDaily, "J1", "Time")
+	f.SetCellValue(memberActionDaily, "K1", "List Before")
+	f.SetCellValue(memberActionDaily, "L1", "List After")
+	f.SetCellValue(memberActionDaily, "M1", "Name")
+	f.SetCellValue(memberActionDaily, "N1", "Task")
+	f.SetCellValue(memberActionDaily, "O1", "Action Types")
+	row := 2
+	for _, memberAction := range memberActions {
+		logger.Info("**************************************************")
+		logger.Info(memberAction.Time)
+		logger.Info(memberAction.ListBefore)
+		logger.Info(memberAction.ListAfter)
+		logger.Info(memberAction.NameOfMember)
+		logger.Info(memberAction.ContentOfTask)
+		logger.Info(memberAction.ActionTypes)
+		f.SetCellValue(memberActionDaily, "J"+strconv.Itoa(row), memberAction.Time)
+		f.SetCellValue(memberActionDaily, "K"+strconv.Itoa(row), memberAction.ListBefore)
+		f.SetCellValue(memberActionDaily, "L"+strconv.Itoa(row), memberAction.ListAfter)
+		f.SetCellValue(memberActionDaily, "M"+strconv.Itoa(row), memberAction.NameOfMember)
+		f.SetCellValue(memberActionDaily, "N"+strconv.Itoa(row), memberAction.ContentOfTask)
+		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.ActionTypes)
+		row += 1
+	}
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
+		logger.Error(err)
+	}
 }
