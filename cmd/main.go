@@ -52,4 +52,5 @@ func main() {
 	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily)
 	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()
 	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()
+
 }

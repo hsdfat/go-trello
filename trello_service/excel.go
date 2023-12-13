@@ -714,8 +714,8 @@ func DrawPieChartSMF(nameSheet string) {
 		Series: []excelize.ChartSeries{
 			{
 				Name:       "Amount",
-				Categories: nameSheet + "!$B$1:$D$1",
-				Values:     nameSheet + "!$B$13:$D$13",
+				Categories: nameSheet + "!$B$1:$E$1",
+				Values:     nameSheet + "!$B$13:$E$13",
 			},
 		},
 		Format: excelize.GraphicOptions{
@@ -795,12 +795,12 @@ func SetMemberActionsSprint(memberActionDaily string, memberActions []*MemberAct
 	if columnSizeErr != nil {
 		logger.Error(columnSizeErr)
 	}
-	f.SetCellValue(memberActionDaily, "J1", "Time")
-	f.SetCellValue(memberActionDaily, "K1", "List Before")
-	f.SetCellValue(memberActionDaily, "L1", "List After")
-	f.SetCellValue(memberActionDaily, "M1", "Name")
-	f.SetCellValue(memberActionDaily, "N1", "Task")
-	f.SetCellValue(memberActionDaily, "O1", "Action Types")
+	f.SetCellValue(memberActionDaily, "K1", "Time")
+	f.SetCellValue(memberActionDaily, "L1", "List Before")
+	f.SetCellValue(memberActionDaily, "M1", "List After")
+	f.SetCellValue(memberActionDaily, "N1", "Name")
+	f.SetCellValue(memberActionDaily, "O1", "Task")
+	f.SetCellValue(memberActionDaily, "P1", "Action Types")
 	row := 2
 	for _, memberAction := range memberActions {
 		logger.Info("**************************************************")
@@ -810,12 +810,12 @@ func SetMemberActionsSprint(memberActionDaily string, memberActions []*MemberAct
 		logger.Info(memberAction.NameOfMember)
 		logger.Info(memberAction.ContentOfTask)
 		logger.Info(memberAction.ActionTypes)
-		f.SetCellValue(memberActionDaily, "J"+strconv.Itoa(row), memberAction.Time)
-		f.SetCellValue(memberActionDaily, "K"+strconv.Itoa(row), memberAction.ListBefore)
-		f.SetCellValue(memberActionDaily, "L"+strconv.Itoa(row), memberAction.ListAfter)
-		f.SetCellValue(memberActionDaily, "M"+strconv.Itoa(row), memberAction.NameOfMember)
-		f.SetCellValue(memberActionDaily, "N"+strconv.Itoa(row), memberAction.ContentOfTask)
-		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.ActionTypes)
+		f.SetCellValue(memberActionDaily, "K"+strconv.Itoa(row), memberAction.Time)
+		f.SetCellValue(memberActionDaily, "L"+strconv.Itoa(row), memberAction.ListBefore)
+		f.SetCellValue(memberActionDaily, "M"+strconv.Itoa(row), memberAction.ListAfter)
+		f.SetCellValue(memberActionDaily, "N"+strconv.Itoa(row), memberAction.NameOfMember)
+		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.ContentOfTask)
+		f.SetCellValue(memberActionDaily, "P"+strconv.Itoa(row), memberAction.ActionTypes)
 		row += 1
 	}
 	if err := f.SaveAs(utils.NameOfFile); err != nil {

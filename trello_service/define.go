@@ -22,6 +22,7 @@ type TrelloClient struct {
 	Cards    map[string]*trello.Card
 	Labels   map[string]*trello.Label
 	Caretory map[string]string
+	Tasks 	 []*Task
 
 	DoneList       string
 	SkipLists      []string
@@ -52,6 +53,8 @@ type MemberStats struct {
 	NProgressHours int32
 	NDoneTasks     int32
 	NDoneHours     int32
+	NExtraTasks    int32 // tasks
+	NExtraHours    int32 // hours
 	Actions        *trello.Action
 }
 
@@ -99,6 +102,7 @@ type Task struct {
 	CreationTime *time.Time
 	IsDone       bool
 	IsInProgress bool
+	IsExtra      bool
 	Hour         int32
 }
 

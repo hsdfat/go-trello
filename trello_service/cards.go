@@ -35,29 +35,30 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 	logger.Debugln("Filtering tasks")
 	if c == nil || c.Board == nil {
 		return nil, fmt.Errorf("no board specified, get board first")
-
 	}
 	for _, card := range cards {
-		ok, hour := ValidateTaskName(card.Name)
+		ok, hour, isExtraTask := ValidateTaskName(card.Name)
 		// logger.Debug("card name: ", card.Name)
 		// logger.Debug("ok: ", ok)
 		// logger.Debug("hour: ", hour)
 		if ok {
-
 			task := &Task{
 				Card:         card,
 				Hour:         hour,
 				IsDone:       card.IDList == c.DoneList,
 				IsInProgress: c.CheckTaskInProgress(card),
+				IsExtra:      isExtraTask,
 			}
+			logger.Debug("is Extra Tast: ", isExtraTask)
 			creationTime, err := GetCreationTime(card.ID)
+
 			if err == nil {
 				task.CreationTime = creationTime
 			}
 			tasks = append(tasks, task)
 		}
 	}
-	logger.Debugln("Number of tasks", len(tasks))
+	logger.Debug("Number of tasks", len(tasks))
 	return tasks, err
 }
 
@@ -90,6 +91,10 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 								atomic.AddInt32(&stat.NProgressTasks, 1)
 								atomic.AddInt32(&stat.NProgressHours, task.Hour)
 							}
+							if task.IsExtra {
+								atomic.AddInt32(&stat.NExtraTasks, 1)
+								atomic.AddInt32(&stat.NExtraHours, task.Hour)
+							}
 						}
 					}
 				}
@@ -106,25 +111,31 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 }
 
 // ValidateTasksName validates card name is task type or not
-func ValidateTaskName(name string) (bool, int32) {
+func ValidateTaskName(name string) (bool, int32, bool) {
 	re := regexp.MustCompile(TASK_NAME_PATTERN)
-	//logger.Debug("re123: ", re)
 	if !re.MatchString(name) {
-		return false, 0
+		return false, 0, false
 	}
 	matches := re.FindStringSubmatch(name)
-	// logger.Debug("matches123: ", matches)
-	if len(matches) < 3 {
-		return true, 0
+	extraTask := matches[1]
+	if (len(matches) < 3) && (extraTask != "Ngoài") {
+		return true, 0, false
 	}
 	timeValue := matches[2]
-	// logger.Debug("time value 123: ", timeValue)
-	// logger.Debug("matches[1]: ", matches[1])
 	timeValueInt, err := strconv.Atoi(timeValue)
 	if err != nil {
-		return true, 0
+		return true, 0, false
 	}
-	return true, int32(timeValueInt)
+	isExtraTask := false
+	logger.Debug("value of extraTask: ", extraTask)
+	if extraTask == "Ngoài" {
+		isExtraTask = true
+		timeValueInt, err = strconv.Atoi(timeValue)
+		if err != nil {
+			return false, 0, isExtraTask
+		}
+	}
+	return true, int32(timeValueInt), isExtraTask
 }
 
 // CheckCardInSkipList returns true if card in the skip list
@@ -142,3 +153,16 @@ func (c *TrelloClient) CheckTaskInProgress(card *trello.Card) bool {
 
 	return !CheckCardInSkipList(card, c.SkipLists) && card.IDList != c.DoneList
 }
+
+// func CheckCardInExtraList(card *trello.Card, extraLists []string) bool {
+// 	for _, extraList := range extraLists {
+// 		if card.IDList == extraList {
+//             return true
+//         }
+// 	}
+// 	return false
+// }
+
+// func (c *TrelloClient) CheckTaskExtra(card *trello.Card) bool {
+// 	return !CheckCardInExtraList(card, c.ExtraLists) && card.IDList != c.DoneList
+// }

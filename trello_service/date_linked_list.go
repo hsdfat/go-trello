@@ -326,6 +326,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						taskInProgress = true
 						atomic.AddInt32(&stat.NProgressTasks, 1)
 						atomic.AddInt32(&stat.NProgressHours, task.Hour)
+
 					}
 				}
 				if action.Data.ListBefore != nil {

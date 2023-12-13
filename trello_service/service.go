@@ -78,7 +78,7 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	if err != nil {
 		logger.Errorln(err)
 	}
-
+	instance.Tasks=tasks
 	// Statistics members
 	err = instance.StatisticTask(tasks)
 	if err != nil {
@@ -107,52 +107,60 @@ func ExportTotalMemberToCsv(memberData *TrelloClient) error {
 	if err != nil {
 		logger.Errorln(err)
 	}
-	totalDoneTasks, totalProgressTasks, totalRemainingTasks, totalTasks, totalDoneHours, totalProgressHours, totalHours := 0, 0, 0, 0, 0, 0, 0
+	totalDoneTasks, totalProgressTasks, totalRemainingTasks, totalExtraTasks, totalTasks, totalDoneHours, totalProgressHours, totalExtraHours, totalHours := 0, 0, 0, 0, 0, 0, 0, 0, 0
 	f.SetCellValue("SMF", "A1", "Name")
 	f.SetCellValue("SMF", "B1", "Done Tasks")
 	f.SetCellValue("SMF", "C1", "Progress Tasks")
-	f.SetCellValue("SMF", "D1", "Remaining Tasks")
-	f.SetCellValue("SMF", "E1", "Tasks")
-	f.SetCellValue("SMF", "F1", "Done Hours")
-	f.SetCellValue("SMF", "G1", "Progress Hours")
-	f.SetCellValue("SMF", "H1", "Hours")
+	f.SetCellValue("SMF", "D1", "Extra Tasks")
+	f.SetCellValue("SMF", "E1", "Remaining Tasks")
+	f.SetCellValue("SMF", "F1", "Tasks")
+	f.SetCellValue("SMF", "G1", "Done Hours")
+	f.SetCellValue("SMF", "H1", "Progress Hours")
+	f.SetCellValue("SMF", "I1", "Extra Hours")
+	f.SetCellValue("SMF", "J1", "Hours")
 	f.SetCellValue("SMF", "A13", "Total")
 	i := 0
 	for _, stat := range memberData.MemberStats {
-		f.SetCellValue("SMF", "A"+strconv.Itoa((i+2)), stat.FullName)
-		f.SetCellValue("SMF", "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
+		f.SetCellValue(utils.NameSMFTeam, "A"+strconv.Itoa((i+2)), stat.FullName)
+		f.SetCellValue(utils.NameSMFTeam, "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
 		totalDoneTasks += int(stat.NDoneTasks)
-		f.SetCellValue("SMF", "C"+strconv.Itoa((i+2)), stat.NProgressTasks)
+		f.SetCellValue(utils.NameSMFTeam, "C"+strconv.Itoa((i+2)), stat.NProgressTasks)
 		totalProgressTasks += int(stat.NProgressTasks)
-		f.SetCellValue("SMF", "D"+strconv.Itoa((i+2)), stat.NTasks-stat.NProgressTasks-stat.NDoneTasks)
+		f.SetCellValue(utils.NameSMFTeam, "D"+strconv.Itoa((i+2)), stat.NExtraTasks)
+		totalExtraTasks += int(stat.NExtraTasks)
+		f.SetCellValue(utils.NameSMFTeam, "E"+strconv.Itoa((i+2)), stat.NTasks-stat.NProgressTasks-stat.NDoneTasks)
 		totalRemainingTasks += int(stat.NTasks - stat.NProgressTasks - stat.NDoneTasks)
-		f.SetCellValue("SMF", "E"+strconv.Itoa((i+2)), stat.NTasks)
+		f.SetCellValue(utils.NameSMFTeam, "F"+strconv.Itoa((i+2)), stat.NTasks)
 		totalTasks += int(stat.NTasks)
-		f.SetCellValue("SMF", "F"+strconv.Itoa((i+2)), stat.NDoneHours)
+		f.SetCellValue(utils.NameSMFTeam, "G"+strconv.Itoa((i+2)), stat.NDoneHours)
 		totalDoneHours += int(stat.NDoneHours)
-		f.SetCellValue("SMF", "G"+strconv.Itoa((i+2)), stat.NProgressHours)
+		f.SetCellValue(utils.NameSMFTeam, "H"+strconv.Itoa((i+2)), stat.NProgressHours)
 		totalProgressHours += int(stat.NProgressHours)
-		f.SetCellValue("SMF", "H"+strconv.Itoa((i+2)), stat.NHours)
+		f.SetCellValue(utils.NameSMFTeam, "I"+strconv.Itoa((i+2)), stat.NExtraHours)
+		totalExtraHours += int(stat.NExtraHours)
+		f.SetCellValue(utils.NameSMFTeam, "J"+strconv.Itoa((i+2)), stat.NHours)
 		totalHours += int(stat.NHours)
 		i += 1
 	}
 
 	//set total
-	f.SetCellValue("SMF", "B"+strconv.Itoa((i+2)), totalDoneTasks)
-	f.SetCellValue("SMF", "C"+strconv.Itoa((i+2)), totalProgressTasks)
-	f.SetCellValue("SMF", "D"+strconv.Itoa((i+2)), totalRemainingTasks)
-	f.SetCellValue("SMF", "E"+strconv.Itoa((i+2)), totalTasks)
-	f.SetCellValue("SMF", "F"+strconv.Itoa((i+2)), totalDoneHours)
-	f.SetCellValue("SMF", "G"+strconv.Itoa((i+2)), totalProgressHours)
-	f.SetCellValue("SMF", "H"+strconv.Itoa((i+2)), totalHours)
+	f.SetCellValue(utils.NameSMFTeam, "B"+strconv.Itoa((i+2)), totalDoneTasks)
+	f.SetCellValue(utils.NameSMFTeam, "C"+strconv.Itoa((i+2)), totalProgressTasks)
+	f.SetCellValue(utils.NameSMFTeam, "D"+strconv.Itoa((i+2)), totalExtraTasks)
+	f.SetCellValue(utils.NameSMFTeam, "E"+strconv.Itoa((i+2)), totalRemainingTasks)
+	f.SetCellValue(utils.NameSMFTeam, "F"+strconv.Itoa((i+2)), totalTasks)
+	f.SetCellValue(utils.NameSMFTeam, "G"+strconv.Itoa((i+2)), totalDoneHours)
+	f.SetCellValue(utils.NameSMFTeam, "H"+strconv.Itoa((i+2)), totalProgressHours)
+	f.SetCellValue(utils.NameSMFTeam, "I"+strconv.Itoa((i+2)), totalExtraHours)
+	f.SetCellValue(utils.NameSMFTeam, "J"+strconv.Itoa((i+2)), totalHours)
 
 	//set size of coloum
-	err_size_column := f.SetColWidth("SMF", "A", "H", 20)
+	err_size_column := f.SetColWidth(utils.NameSMFTeam, "A", "J", 20)
 	if err_size_column != nil {
 		fmt.Println(err_size_column)
 	}
 
-	err_size_height := f.SetRowHeight("SMF", 1, 20)
+	err_size_height := f.SetRowHeight(utils.NameSMFTeam, 1, 20)
 	if err_size_height != nil {
 		fmt.Println(err_size_height)
 	}
