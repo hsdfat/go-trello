@@ -31,11 +31,6 @@ func main() {
 
 	trello_service.Start()
 	boardId := viper.GetString("trello.boardId")
-	//err = trello_service.GetBoardInfo(boardId)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-
 	startDay := viper.GetString("trello.startDay")
 	startDayTime, err := time.Parse("02-01-2006", startDay)
 	if err != nil {
@@ -53,10 +48,8 @@ func main() {
 	trello_service.DrawPieChartSMF(utils.NameSMFTeam)
 	trello_service.ExportDataOfMembersToExcel(ins)
 	trello_service.ExportDataOfDailyToExcel(ins)
-	trello_service.DrawDailyLineChart("Daily")
-	trello_service.DrawClusteredColumnChart("Daily")
+	trello_service.DrawDailyLineChart(utils.MemberActionDaily)
+	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily)
 	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()
 	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()
-	//trello_service.DrawLineChartForTotal("SMF")
-
 }

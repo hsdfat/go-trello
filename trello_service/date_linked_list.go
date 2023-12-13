@@ -78,8 +78,11 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList(numberOfMembers int
 			current = current.next
 			continue
 		}
-		remainingTasks += stat.NTasks - stat.NProgressTasks - stat.NDoneTasks
-		remainingHours += stat.NHours - stat.NProgressHours - stat.NDoneHours
+		//remainingTasks += stat.NTasks - stat.NProgressTasks - stat.NDoneTasks
+		remainingTasks += stat.NTasks - stat.NDoneTasks
+		//time need to do remaining tasks
+		//remainingHours += stat.NHours - stat.NProgressHours - stat.NDoneHours
+		remainingHours += stat.NHours - stat.NDoneHours
 		linear_hours -= 8 * numberOfMembers
 		remainingTasksData = append(remainingTasksData, stat.Date.Format("02-01-2006"))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingTasks)))
@@ -315,7 +318,6 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 			if action.Data != nil {
 				var taskDone, taskUndone, taskInProgress, taskNotInProgress bool
 				if action.Data.ListAfter != nil {
-					// logger.Debugln("List After: ", action.Data.ListAfter.Name)
 					if action.Data.ListAfter.ID == ins.DoneList {
 						taskDone = true
 						atomic.AddInt32(&stat.NDoneTasks, 1)
@@ -327,7 +329,6 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 					}
 				}
 				if action.Data.ListBefore != nil {
-					// logger.Debugln("List Before: ", action.Data.ListBefore.Name)
 					if action.Data.ListBefore.ID == ins.DoneList {
 						taskUndone = true
 						atomic.AddInt32(&stat.NDoneTasks, -1)
@@ -348,13 +349,10 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						memberIdList := card.IDMembers
 						for _, id := range memberIdList {
 							memberStat, ok := stat.MemberStats[id]
-							// logger.Debugln("stat.Date.Day: ", stat.Date.Day())
-							// logger.Debugln("day: ", day)
-							//if ok && stat.Date.Day() == 11 {
 							if ok {
 								var needSaved = false
 								memberAction := MemberActions{
-									Time:          action.Date,
+									Time:          utils.TimeLocal(action.Date),
 									NameOfMember:  memberStat.FullName,
 									ContentOfTask: action.Data.Card.Name,
 								}
@@ -377,15 +375,12 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 									atomic.AddInt32(&memberStat.NProgressTasks, 1)
 									atomic.AddInt32(&memberStat.NProgressHours, task.Hour)
 									memberAction.ActionTypes = append(memberAction.ActionTypes, "InProgress")
-									// memberAction_inprogress := MemberActions{stat.Date, action.Data.ListBefore.Name, action.Data.ListAfter.Name, memberStat.FullName, action.Data.Card.Name}
-									// break
 								}
 								if taskUndone {
 									needSaved = true
 									atomic.AddInt32(&memberStat.NDoneTasks, -1)
 									atomic.AddInt32(&memberStat.NDoneHours, -1*task.Hour)
 									memberAction.ActionTypes = append(memberAction.ActionTypes, "Undone")
-									// memberAction_undone := MemberActions{stat.Date, action.Data.ListBefore.Name, action.Data.ListAfter.Name, memberStat.FullName, action.Data.Card.Name}
 								}
 								if taskNotInProgress {
 									needSaved = true

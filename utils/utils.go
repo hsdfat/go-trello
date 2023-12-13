@@ -39,3 +39,11 @@ func IsDateEqual(time1 *time.Time, time2 *time.Time) bool {
 		return false
 	}
 }
+
+func TimeLocal(timeLocal time.Time) time.Time {
+    loc, err := time.LoadLocation("Asia/Ho_Chi_Minh")
+    if err != nil {
+        logger.Error(err)
+    }
+    return timeLocal.In(loc)
+}
