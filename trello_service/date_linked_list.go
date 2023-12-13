@@ -292,6 +292,8 @@ func (list *DateLinkedList) ExportMemberActionsDailyToExcel() {
 		logger.Info("Not actions in this day: ", time.Now())
 	}
 	logger.Debug("Today: ", time.Now())
+	SortMembersActionsDailyUseName(memberActions)
+	SortMembersActionsDailyUseTime(memberActions)
 	SetMemberActionsDaily(utils.MemberActionDaily, memberActions)
 }
 
@@ -300,6 +302,8 @@ func (list *DateLinkedList) ExportMemberActionsSprintToExcel() {
 	if memberActions == nil {
 		logger.Info("Not actions in this sprint: ", time.Now())
 	}
+	SortMembersActionsDailyUseName(memberActions)
+	SortMembersActionsDailyUseTime(memberActions)
 	SetMemberActionsSprint(utils.NameSMFTeam, memberActions)
 }
 

@@ -192,3 +192,25 @@ func ExportDataOfDailyToExcel(memberData *TrelloClient) {
 	//logger.Debugln("^^^: ", dataDailyList)
 	SetCellValue("Daily", dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint)
 }
+
+func SortMembersActionsDailyUseName(memberActions []*MemberActions) {
+	length := len(memberActions)
+	for i := 0; i < length - 1; i++ {
+		for j := 0; j < length - i - 1; j++ {
+			if memberActions[j].NameOfMember > memberActions[j+1].NameOfMember {
+				memberActions[j], memberActions[j + 1] = memberActions[j + 1], memberActions[j]
+			}
+		}
+	}
+}
+
+func SortMembersActionsDailyUseTime(memberActions []*MemberActions) {
+	length := len(memberActions)
+	for i := 0; i < length - 1; i++ {
+		for j := 0; j < length - i - 1; j++ {
+			if memberActions[j].Time.After(memberActions[j+1].Time) {
+				memberActions[j], memberActions[j + 1] = memberActions[j + 1], memberActions[j]
+			}
+		}
+	}
+}
