@@ -178,6 +178,7 @@ func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 		totalTasks := memberData.MemberStats[memberId].NTasks
 		totalHours := memberData.MemberStats[memberId].NHours
 		numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+		currentDay :=  memberData.DailyTrackingStats.
 		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours)
 		DrawLineChart(memberData.MemberStats[memberId].Name)
 	}

@@ -49,11 +49,11 @@ func main() {
 	//ins.DailyTrackingStats.PrintMemberActions()
 	trello_service.ExportTotalMemberToCsv(ins)
 	trello_service.DrawPieChartSMF(utils.NameSMFTeam)
-	trello_service.ExportDataOfMembersToExcel(ins)
-	trello_service.ExportDataOfDailyToExcel(ins)
+	trello_service.ExportDataOfMembersToExcel(ins)							//Sheet: Data each member of team
+	trello_service.ExportDataOfDailyToExcel(ins)							//Data of sheet daily
 	trello_service.DrawDailyLineChart(utils.MemberActionDaily)
 	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily)
-	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()
+	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()				//Sheet: Daily
 	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()
 
 }

@@ -71,7 +71,7 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		fmt.Println(err_size_height)
 	}
 
-	var j int = 64
+	var j int = 65
 	var countDay int = 1
 	//get data to sheet of each member
 	f.SetCellValue(nameOfSheet, "A1", "Date")
@@ -79,6 +79,9 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 	f.SetCellValue(nameOfSheet, "A3", "Expected")
 	f.SetCellValue(nameOfSheet, "A4", "Remaining Hours")
 	f.SetCellValue(nameOfSheet, "A5", "Hours")
+	f.SetCellValue(nameOfSheet, "B1", "StartDay")
+	f.SetCellValue(nameOfSheet, "B2", strconv.Itoa(totalTask))
+	f.SetCellValue(nameOfSheet, "B3", strconv.Itoa(totalTask))
 
 	for i := 0; i < len(dataDaily); i += 4 {
 		date := dataDaily[i]

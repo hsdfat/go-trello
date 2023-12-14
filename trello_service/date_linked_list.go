@@ -127,6 +127,18 @@ func (list *DateLinkedList) CountDaysInSprint() int {
 	return count
 }
 
+func (list *DateLinkedList) CountNumberToCurrentDay (starDayOfSprint time.Time) int {
+	count := 0
+	temp := list.head
+	for temp != nil {
+		temp = temp.next
+		if utils.IsDateEqual(&starDayOfSprint, &time.Now()) {
+			
+		}
+		count += 1
+	}
+}
+
 func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask int32, numberOfSprint int, totalHours int32) {
 	numberOfTasksNeedDone := totalTask
 	numberOfRemainingHours := totalHours
@@ -149,7 +161,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 	}
 
 	current := list.head
-	var i int = 64
+	var i int = 65
 	var countDay int = 1
 	for current != nil {
 		stat := current.stat
@@ -168,18 +180,18 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		f.SetCellValue(memberStat.Name, "A2", "Tasks")
 		f.SetCellValue(memberStat.Name, "A3", "Expected")
 		f.SetCellValue(memberStat.Name, "A4", "Hours")
-
+		f.SetCellValue(memberStat.Name, "B1", "StartDay")
+		f.SetCellValue(memberStat.Name, "B2", strconv.Itoa(int(totalTask)))			//why is 0
+		//logger.Info("member nstart: ", memberStat.NTasks)
+		f.SetCellValue(memberStat.Name, "B3", strconv.Itoa(int(totalTask)))
 		// Create a new sheet.
 		index, err := f.NewSheet(memberStat.Name)
 		if err != nil {
 			logger.Errorln(err)
 		}
 		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))	
-		i += 1
-
 		numberOfTasksNeedDone = numberOfTasksNeedDone  - memberStat.NDoneTasks		
 		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
-
 		f.SetCellValue(memberStat.Name, string((i+2))+"1", date)
 		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
 
@@ -198,8 +210,8 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		}
 
 		f.SetActiveSheet(index)
-
 		countDay += 1
+		i += 1
 		current = current.next
 	}
 
