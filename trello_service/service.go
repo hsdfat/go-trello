@@ -2,14 +2,13 @@ package trello_service
 
 import (
 	"fmt"
-	"go-trello/logger"
-	"strconv"
-	"time"
-
 	"github.com/adlio/trello"
 	"github.com/spf13/viper"
-	// excelize "github.com/xuri/excelize/v2"
 	"github.com/xuri/excelize/v2"
+	"go-trello/logger"
+	"go-trello/utils"
+	"strconv"
+	"time"
 )
 
 var c *TrelloClient // Using only one instance like singleton
@@ -79,7 +78,7 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	if err != nil {
 		logger.Errorln(err)
 	}
-
+	instance.Tasks=tasks
 	// Statistics members
 	err = instance.StatisticTask(tasks)
 	if err != nil {
@@ -87,15 +86,16 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	}
 	instance.PrintMemberStatistics()
 
-	for memberId, _ := range instance.Members {
-		instance.DailyTrackingStats.PrintMemberStatTracking(memberId)
-	}
-	
+	// for memberId, _ := range instance.Members {
+	// 	instance.DailyTrackingStats.PrintMemberStatTracking(memberId)
+	// 	logger.Debug("______________________________", memberId)
+	// 	instance.DailyTrackingStats.PrintLinkList()
+	// }
+
 	return instance
 }
 
-func ExportCsv(memberData *TrelloClient) error {
-	
+func ExportTotalMemberToCsv(memberData *TrelloClient) error {
 	f := excelize.NewFile()
 	defer func() {
 		if err := f.Close(); err != nil {
@@ -105,91 +105,113 @@ func ExportCsv(memberData *TrelloClient) error {
 	// Create a new sheet.
 	index, err := f.NewSheet("SMF")
 	if err != nil {
-		fmt.Println(err)
-		logger.Errorln("5")
+		logger.Errorln(err)
 	}
-
+	totalDoneTasks, totalProgressTasks, totalRemainingTasks, totalExtraTasks, totalTasks, totalDoneHours, totalProgressHours, totalExtraHours, totalHours := 0, 0, 0, 0, 0, 0, 0, 0, 0
 	f.SetCellValue("SMF", "A1", "Name")
 	f.SetCellValue("SMF", "B1", "Done Tasks")
 	f.SetCellValue("SMF", "C1", "Progress Tasks")
-	f.SetCellValue("SMF", "D1", "Sprint Backlog Tasks")
-	f.SetCellValue("SMF", "E1", "Tasks")
-	f.SetCellValue("SMF", "F1", "Done Hours")
-	f.SetCellValue("SMF", "G1", "Progress Hours")
-	f.SetCellValue("SMF", "H1", "Hours")
+	f.SetCellValue("SMF", "D1", "Remaining Tasks")
+	f.SetCellValue("SMF", "E1", "Extra Tasks")
+	f.SetCellValue("SMF", "F1", "Tasks")
+	f.SetCellValue("SMF", "G1", "Done Hours")
+	f.SetCellValue("SMF", "H1", "Progress Hours")
+	f.SetCellValue("SMF", "I1", "Extra Hours")
+	f.SetCellValue("SMF", "J1", "Hours")
+	f.SetCellValue("SMF", "A13", "Total")
 	i := 0
 	for _, stat := range memberData.MemberStats {
-		f.SetCellValue("SMF", "A"+strconv.Itoa((i+2)), stat.Name)
-		f.SetCellValue("SMF", "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
-		f.SetCellValue("SMF", "C"+strconv.Itoa((i+2)), stat.NProgressTasks)
-		f.SetCellValue("SMF", "D"+strconv.Itoa((i+2)), stat.NTasks-stat.NProgressTasks-stat.NDoneTasks)
-		f.SetCellValue("SMF", "E"+strconv.Itoa((i+2)), stat.NTasks)
-		f.SetCellValue("SMF", "F"+strconv.Itoa((i+2)), stat.NDoneHours)
-		f.SetCellValue("SMF", "G"+strconv.Itoa((i+2)), stat.NProgressHours)
-		f.SetCellValue("SMF", "H"+strconv.Itoa((i+2)), stat.NHours)
+		f.SetCellValue(utils.NameSMFTeam, "A"+strconv.Itoa((i+2)), stat.FullName)
+		f.SetCellValue(utils.NameSMFTeam, "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
+		totalDoneTasks += int(stat.NDoneTasks)
+		f.SetCellValue(utils.NameSMFTeam, "C"+strconv.Itoa((i+2)), stat.NProgressTasks)
+		totalProgressTasks += int(stat.NProgressTasks)
+		f.SetCellValue(utils.NameSMFTeam, "D"+strconv.Itoa((i+2)), stat.NTasks-stat.NProgressTasks-stat.NDoneTasks)
+		totalRemainingTasks += int(stat.NTasks - stat.NProgressTasks - stat.NDoneTasks)
+		f.SetCellValue(utils.NameSMFTeam, "E"+strconv.Itoa((i+2)), stat.NExtraTasks)
+		totalExtraTasks += int(stat.NExtraTasks)
+		f.SetCellValue(utils.NameSMFTeam, "F"+strconv.Itoa((i+2)), stat.NTasks)
+		totalTasks += int(stat.NTasks)
+		f.SetCellValue(utils.NameSMFTeam, "G"+strconv.Itoa((i+2)), stat.NDoneHours)
+		totalDoneHours += int(stat.NDoneHours)
+		f.SetCellValue(utils.NameSMFTeam, "H"+strconv.Itoa((i+2)), stat.NProgressHours)
+		totalProgressHours += int(stat.NProgressHours)
+		f.SetCellValue(utils.NameSMFTeam, "I"+strconv.Itoa((i+2)), stat.NExtraHours)
+		totalExtraHours += int(stat.NExtraHours)
+		f.SetCellValue(utils.NameSMFTeam, "J"+strconv.Itoa((i+2)), stat.NHours)
+		totalHours += int(stat.NHours)
 		i += 1
 	}
+
+	//set total
+	f.SetCellValue(utils.NameSMFTeam, "B"+strconv.Itoa((i+2)), totalDoneTasks)
+	f.SetCellValue(utils.NameSMFTeam, "C"+strconv.Itoa((i+2)), totalProgressTasks)
+	f.SetCellValue(utils.NameSMFTeam, "D"+strconv.Itoa((i+2)), totalRemainingTasks)
+	f.SetCellValue(utils.NameSMFTeam, "E"+strconv.Itoa((i+2)), totalExtraTasks)
+	f.SetCellValue(utils.NameSMFTeam, "F"+strconv.Itoa((i+2)), totalTasks)
+	f.SetCellValue(utils.NameSMFTeam, "G"+strconv.Itoa((i+2)), totalDoneHours)
+	f.SetCellValue(utils.NameSMFTeam, "H"+strconv.Itoa((i+2)), totalProgressHours)
+	f.SetCellValue(utils.NameSMFTeam, "I"+strconv.Itoa((i+2)), totalExtraHours)
+	f.SetCellValue(utils.NameSMFTeam, "J"+strconv.Itoa((i+2)), totalHours)
+
+	//set size of coloum
+	err_size_column := f.SetColWidth(utils.NameSMFTeam, "A", "J", 20)
+	if err_size_column != nil {
+		fmt.Println(err_size_column)
+	}
+
+	err_size_height := f.SetRowHeight(utils.NameSMFTeam, 1, 20)
+	if err_size_height != nil {
+		fmt.Println(err_size_height)
+	}
+
 	f.SetActiveSheet(index)
 	// Save spreadsheet by the given path.
-	if err := f.SaveAs("Book1.xlsx"); err != nil {
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
 	return nil
 }
 
-func DrawChart() {
-	//get data
-	f, err := excelize.OpenFile("Book1.xlsx")
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-    defer func() {
-        // Close the spreadsheet.
-        if err := f.Close(); err != nil {
-            fmt.Println(err)
-        }
-    }()
-	cell, err := f.GetCellValue("SMF", "B2")
-    if err != nil {
-        fmt.Println(err)
-        return
-    }
-    fmt.Println(cell)
-	
-	//add chart
-	tilte_chart, err1 := f.GetCellValue("SMF", "A2")
-	if err1 != nil {
-		fmt.Println(err1)
-		return
+func ExportDataOfMembersToExcel(memberData *TrelloClient) {
+	for memberId, _ := range memberData.Members {
+		totalTasks := memberData.MemberStats[memberId].NTasks
+		totalHours := memberData.MemberStats[memberId].NHours
+		numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours)
+		DrawLineChart(memberData.MemberStats[memberId].Name)
 	}
-    if err := f.AddChart("SMF", "J1", &excelize.Chart{
-        Type: excelize.Pie,
-        Series: []excelize.ChartSeries{
-            {
-                Name:       "Amount",
-                Categories: "SMF!$B$1:$D$1",
-                Values:     "SMF!$B$2:$D$2",
-            },
-        },
-        Format: excelize.GraphicOptions{
-            OffsetX: 15,
-            OffsetY: 10,
-        },
-        Title: []excelize.RichTextRun{
-            {
-				Text: tilte_chart,
-            },
-        },
-        PlotArea: excelize.ChartPlotArea{
-            ShowPercent: true,
-        },
-    }); err != nil {
-        fmt.Println(err)
-        return
-    }
-    // Save workbook
-    if err := f.SaveAs("Book1.xlsx"); err != nil {
-        fmt.Println(err)
-    }
+}
+
+func ExportDataOfDailyToExcel(memberData *TrelloClient) {
+	numberOfMembers := len(memberData.Members)
+	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+	memberData.DailyTrackingStats.PrintLinkList()
+	//logger.Debugln("!!!2: ", numberOfMembers)
+	initTotalTime := 8 * numberOfMembers * numberOfSprint
+	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList(numberOfMembers, initTotalTime)
+	//logger.Debugln("^^^: ", dataDailyList)
+	SetCellValue("Daily", dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint)
+}
+
+func SortMembersActionsDailyUseName(memberActions []*MemberActions) {
+	length := len(memberActions)
+	for i := 0; i < length - 1; i++ {
+		for j := 0; j < length - i - 1; j++ {
+			if memberActions[j].NameOfMember > memberActions[j+1].NameOfMember {
+				memberActions[j], memberActions[j + 1] = memberActions[j + 1], memberActions[j]
+			}
+		}
+	}
+}
+
+func SortMembersActionsDailyUseTime(memberActions []*MemberActions) {
+	length := len(memberActions)
+	for i := 0; i < length - 1; i++ {
+		for j := 0; j < length - i - 1; j++ {
+			if memberActions[j].Time.After(memberActions[j+1].Time) {
+				memberActions[j], memberActions[j + 1] = memberActions[j + 1], memberActions[j]
+			}
+		}
+	}
 }

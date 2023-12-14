@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go-trello/logger"
 	"strconv"
+	"sync"
 	"time"
 )
 
@@ -57,6 +58,8 @@ func (c *TrelloClient) SetSprintDuration(start, end time.Time) error {
 			Date:        date,
 			DateBefore:  dateBefore,
 			MemberStats: make(map[string]*MemberStats),
+			MemberActions: make(map[string]*MemberActions),
+			Mutex: &sync.Mutex{},
 		}
 
 		c.DailyTrackingStats.AddNodeAtEnd(dateStat)

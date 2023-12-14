@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
+	"go-trello/logger"
 	"go-trello/trello_service"
+	"go-trello/utils"
 	"log"
 	"strings"
 	"time"
@@ -13,6 +15,7 @@ import (
 func main() {
 	fmt.Println("Hello, World!")
 	binaryPath := "./config/"
+	logger.SetLogLevel(5)
 	viper.AddConfigPath(binaryPath)
 	viper.AddConfigPath(".")
 	viper.SetConfigName("config")
@@ -28,11 +31,6 @@ func main() {
 
 	trello_service.Start()
 	boardId := viper.GetString("trello.boardId")
-	//err = trello_service.GetBoardInfo(boardId)
-	//if err != nil {
-	//	log.Println(err)
-	//}
-	
 	startDay := viper.GetString("trello.startDay")
 	startDayTime, err := time.Parse("02-01-2006", startDay)
 	if err != nil {
@@ -40,12 +38,22 @@ func main() {
 	}
 	endDay := viper.GetString("trello.endDay")
 	endDayTime, err := time.Parse("02-01-2006", endDay)
+
+	startDayTime = utils.TimeLocal(startDayTime)
+    endDayTime = utils.TimeLocal(endDayTime)
 	if err != nil {
 		log.Panicln("Cannot parse end day: ", err)
 	}
 
 	ins := trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
+	//ins.DailyTrackingStats.PrintMemberActions()
+	trello_service.ExportTotalMemberToCsv(ins)
+	trello_service.DrawPieChartSMF(utils.NameSMFTeam)
+	trello_service.ExportDataOfMembersToExcel(ins)
+	trello_service.ExportDataOfDailyToExcel(ins)
+	trello_service.DrawDailyLineChart(utils.MemberActionDaily)
+	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily)
+	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()
+	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()
 
-	trello_service.ExportCsv(ins)
-	trello_service.DrawChart()
 }
