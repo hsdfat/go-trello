@@ -19,7 +19,7 @@ func (c *TrelloClient) GetActionsByCard(task *Task, wgParent *sync.WaitGroup) (e
 		return fmt.Errorf("no card specified, cannot get actions")
 	}
 
-	actions, err := task.Card.GetActions(trello.Arguments{"filter": "updateCard:idList,updateCard:closed"})
+	actions, err := task.Card.GetActions(trello.Arguments{"filter": "updateCard:idList,updateCard:closed,createCard"})
 	if err != nil {
 		return err
 	}

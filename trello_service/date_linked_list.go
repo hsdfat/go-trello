@@ -56,7 +56,7 @@ func (list *DateLinkedList) PrintLinkList() {
 			current = current.next
 			continue
 		}
-		logger.Debugln(fmt.Sprintf("date [%s]: new task (done/progress/total): %d/%d/%d, new hour (done/progress/total): %d/%d/%d\t",
+		logger.Info(fmt.Sprintf("date [%s]: new task (done/progress/total): %d/%d/%d, new hour (done/progress/total): %d/%d/%d\t",
 			stat.Date.Format("02-01-2006"), stat.NDoneTasks, stat.NProgressTasks, stat.NTasks, stat.NDoneHours, stat.NProgressHours, stat.NHours))
 		current = current.next
 	}
@@ -111,7 +111,7 @@ func (list *DateLinkedList) PrintMemberStatTracking(id string) {
 			continue
 		}
 
-		logger.Debugln(fmt.Sprintf("member: [%s] date [%s]: new task (done/progress/extra task): %d/%d/%d, new hour (done/progress/extra task): %d/%d/%d\t", memberStat.FullName,
+		logger.Info(fmt.Sprintf("member: [%s] date [%s]: new task (done/progress/extra task): %d/%d/%d, new hour (done/progress/extra task): %d/%d/%d\t", memberStat.FullName,
 			stat.Date.Format("02-01-2006"), memberStat.NDoneTasks, memberStat.NProgressTasks, memberStat.NTasks, memberStat.NDoneHours, memberStat.NProgressHours, memberStat.NHours))
 		current = current.next
 	}
@@ -158,6 +158,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 			continue
 		}
 		memberStat, ok := stat.MemberStats[id]
+
 		if !ok {
 			current = current.next
 			continue
@@ -173,7 +174,11 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		if err != nil {
 			logger.Errorln(err)
 		}
-		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
+		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))	
+		i += 1
+
+		numberOfTasksNeedDone = numberOfTasksNeedDone  - memberStat.NDoneTasks		
+		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
 
 		f.SetCellValue(memberStat.Name, string((i+2))+"1", date)
 		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
@@ -181,11 +186,6 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
 		//fmt.Println("************", expected_task)
 		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task)
-		countDay += 1
-		i += 1
-		numberOfTasksNeedDone = numberOfTasksNeedDone + memberStat.NTasks - memberStat.NDoneTasks
-		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
-
 		//set size of coloum
 		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)
 		if err_size_column != nil {
@@ -198,6 +198,8 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		}
 
 		f.SetActiveSheet(index)
+
+		countDay += 1
 		current = current.next
 	}
 
@@ -291,7 +293,6 @@ func (list *DateLinkedList) ExportMemberActionsDailyToExcel() {
 	if memberActions == nil {
 		logger.Info("Not actions in this day: ", time.Now())
 	}
-	logger.Debug("Today: ", time.Now())
 	SortMembersActionsDailyUseName(memberActions)
 	SortMembersActionsDailyUseTime(memberActions)
 	SetMemberActionsDaily(utils.MemberActionDaily, memberActions)
@@ -321,6 +322,14 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 		if endOfDay(stat.Date).After(action.Date) {
 			if action.Data != nil {
 				var taskDone, taskUndone, taskInProgress, taskNotInProgress bool
+
+				if action.Type == "createCard" {
+					if action.Data.List.ID == ins.DoneList {
+						taskDone = true
+						atomic.AddInt32(&stat.NDoneTasks, 1)
+						atomic.AddInt32(&stat.NDoneHours, task.Hour)
+					}
+				}
 				if action.Data.ListAfter != nil {
 					if action.Data.ListAfter.ID == ins.DoneList {
 						taskDone = true
@@ -393,7 +402,6 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 									atomic.AddInt32(&memberStat.NProgressHours, -1*task.Hour)
 									memberAction.ActionTypes = append(memberAction.ActionTypes, "NotInProgress")
 								}
-
 								if needSaved {
 									stat.Mutex.Lock()
 									stat.MemberActions[action.Date.String()] = &memberAction

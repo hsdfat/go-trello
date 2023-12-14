@@ -49,7 +49,7 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 				IsInProgress: c.CheckTaskInProgress(card),
 				IsExtra:      isExtraTask,
 			}
-			logger.Debug("is Extra Tast: ", isExtraTask)
+			// logger.Debug("is Extra Tast: ", isExtraTask)
 			creationTime, err := GetCreationTime(card.ID)
 
 			if err == nil {
@@ -58,7 +58,7 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 			tasks = append(tasks, task)
 		}
 	}
-	logger.Debug("Number of tasks", len(tasks))
+	// logger.Debug("Number of tasks", len(tasks))
 	return tasks, err
 }
 
@@ -127,7 +127,7 @@ func ValidateTaskName(name string) (bool, int32, bool) {
 		return true, 0, false
 	}
 	isExtraTask := false
-	logger.Debug("value of extraTask: ", extraTask)
+	// logger.Debug("value of extraTask: ", extraTask)
 	if extraTask == "Ngoài" {
 		isExtraTask = true
 		timeValueInt, err = strconv.Atoi(timeValue)

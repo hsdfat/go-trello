@@ -38,6 +38,9 @@ func main() {
 	}
 	endDay := viper.GetString("trello.endDay")
 	endDayTime, err := time.Parse("02-01-2006", endDay)
+
+	startDayTime = utils.TimeLocal(startDayTime)
+    endDayTime = utils.TimeLocal(endDayTime)
 	if err != nil {
 		log.Panicln("Cannot parse end day: ", err)
 	}

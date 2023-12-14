@@ -714,8 +714,8 @@ func DrawPieChartSMF(nameSheet string) {
 		Series: []excelize.ChartSeries{
 			{
 				Name:       "Amount",
-				Categories: nameSheet + "!$B$1:$E$1",
-				Values:     nameSheet + "!$B$13:$E$13",
+				Categories: nameSheet + "!$B$1:$D$1",
+				Values:     nameSheet + "!$B$13:$D$13",
 			},
 		},
 		Format: excelize.GraphicOptions{
@@ -761,13 +761,13 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 	f.SetCellValue(memberActionDaily, "S10", "Action Types")
 	row := 11
 	for _, memberAction := range memberActions {
-		logger.Info("**************************************************")
-		logger.Info(memberAction.Time)
-		logger.Info(memberAction.ListBefore)
-		logger.Info(memberAction.ListAfter)
-		logger.Info(memberAction.NameOfMember)
-		logger.Info(memberAction.ContentOfTask)
-		logger.Info(memberAction.ActionTypes)
+		// logger.Info("**************************************************")
+		// logger.Info(memberAction.Time)
+		// logger.Info(memberAction.ListBefore)
+		// logger.Info(memberAction.ListAfter)
+		// logger.Info(memberAction.NameOfMember)
+		// logger.Info(memberAction.ContentOfTask)
+		// logger.Info(memberAction.ActionTypes)
 		f.SetCellValue(memberActionDaily, "N"+strconv.Itoa(row), memberAction.Time)
 		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.ListBefore)
 		f.SetCellValue(memberActionDaily, "P"+strconv.Itoa(row), memberAction.ListAfter)
@@ -803,13 +803,13 @@ func SetMemberActionsSprint(memberActionDaily string, memberActions []*MemberAct
 	f.SetCellValue(memberActionDaily, "P1", "Action Types")
 	row := 2
 	for _, memberAction := range memberActions {
-		logger.Info("**************************************************")
-		logger.Info(memberAction.Time)
-		logger.Info(memberAction.ListBefore)
-		logger.Info(memberAction.ListAfter)
-		logger.Info(memberAction.NameOfMember)
-		logger.Info(memberAction.ContentOfTask)
-		logger.Info(memberAction.ActionTypes)
+		// logger.Info("**************************************************")
+		// logger.Info(memberAction.Time)
+		// logger.Info(memberAction.ListBefore)
+		// logger.Info(memberAction.ListAfter)
+		// logger.Info(memberAction.NameOfMember)
+		// logger.Info(memberAction.ContentOfTask)
+		// logger.Info(memberAction.ActionTypes)
 		f.SetCellValue(memberActionDaily, "K"+strconv.Itoa(row), memberAction.Time)
 		f.SetCellValue(memberActionDaily, "L"+strconv.Itoa(row), memberAction.ListBefore)
 		f.SetCellValue(memberActionDaily, "M"+strconv.Itoa(row), memberAction.ListAfter)
