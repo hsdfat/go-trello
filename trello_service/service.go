@@ -176,22 +176,19 @@ func ExportTotalMemberToCsv(memberData *TrelloClient) error {
 }
 
 func ExportDataOfMembersToExcel(memberData *TrelloClient) {
-	var totalTasks int32 = 0
 	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
 	startDay := viper.GetString("trello.startDay")
 	startDayOfSprint, err := time.Parse("02-01-2006", startDay)
-	if err != nil {
-		logger.Error("Cannot parse start day: ", err)
-	}
 	startDayOfSprintInVn := utils.TimeLocal(startDayOfSprint)
 	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDay(startDayOfSprintInVn) // number of days from start day to current day
-
+	var totalTasks int32 = 0
+	var totalHours int32 = 0
 	for memberId, _ := range memberData.Members {
 		totalTasks += memberData.MemberStats[memberId].NTasks
-		totalHours := memberData.MemberStats[memberId].NHours
-	}
-
-	for memberId, _ := range memberData.Members {
+		totalHours += memberData.MemberStats[memberId].NHours
+		if err != nil {
+			logger.Error("Cannot parse start day: ", err)
+		}
 		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours, numberOfDayToCurrentDay)
 		DrawLineChart(memberData.MemberStats[memberId].Name)
 	}
