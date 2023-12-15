@@ -2,13 +2,14 @@ package trello_service
 
 import (
 	"fmt"
-	"github.com/adlio/trello"
-	"github.com/spf13/viper"
-	"github.com/xuri/excelize/v2"
 	"go-trello/logger"
 	"go-trello/utils"
 	"strconv"
 	"time"
+
+	"github.com/adlio/trello"
+	"github.com/spf13/viper"
+	"github.com/xuri/excelize/v2"
 )
 
 var c *TrelloClient // Using only one instance like singleton
@@ -45,44 +46,45 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	// instance.SetSprintEndDay(endDay)
 	err := instance.SetSprintDuration(startDay, endDay)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
 	board, err := instance.Client.GetBoard(id)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
-	logger.Debugln("Get board:", board.Name)
+	logger.Debug("Get board:", board.Name)
 	instance.Board = board
 
 	list, err := instance.GetLists()
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
-	logger.Debugln("Get List", len(list))
+	logger.Debug("Get List", len(list))
 	instance.StatisticList()
-
 	_, err = instance.GetMembersInBoard()
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
-
-	logger.Debugln("Get members")
 
 	// Get cards in board
-	cards, err := instance.GetCardsInBoard(id)
-	if err != nil {
-		logger.Errorln(err)
-	}
-	logger.Debugln("Get cards", len(cards))
+	// cards, err := instance.GetCardsInBoard(id)
+	// if err != nil {
+	// 	logger.Error(err)
+	// }
+	cards, err, number := instance.GetCardsInBoard(id)
+	logger.Info("@#: ", number)
+
+	logger.Info("Get cards", len(cards))
+
 	tasks, err := instance.FilterTasks(cards)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
-	instance.Tasks=tasks
+	instance.Tasks = tasks
 	// Statistics members
 	err = instance.StatisticTask(tasks)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
 	instance.PrintMemberStatistics()
 
@@ -103,25 +105,25 @@ func ExportTotalMemberToCsv(memberData *TrelloClient) error {
 		}
 	}()
 	// Create a new sheet.
-	index, err := f.NewSheet("SMF")
+	index, err := f.NewSheet(utils.NameSMFTeam)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
 	totalDoneTasks, totalProgressTasks, totalRemainingTasks, totalExtraTasks, totalTasks, totalDoneHours, totalProgressHours, totalExtraHours, totalHours := 0, 0, 0, 0, 0, 0, 0, 0, 0
-	f.SetCellValue("SMF", "A1", "Name")
-	f.SetCellValue("SMF", "B1", "Done Tasks")
-	f.SetCellValue("SMF", "C1", "Progress Tasks")
-	f.SetCellValue("SMF", "D1", "Remaining Tasks")
-	f.SetCellValue("SMF", "E1", "Extra Tasks")
-	f.SetCellValue("SMF", "F1", "Tasks")
-	f.SetCellValue("SMF", "G1", "Done Hours")
-	f.SetCellValue("SMF", "H1", "Progress Hours")
-	f.SetCellValue("SMF", "I1", "Extra Hours")
-	f.SetCellValue("SMF", "J1", "Hours")
-	f.SetCellValue("SMF", "A13", "Total")
+	f.SetCellValue(utils.NameSMFTeam, "A1", "Name")
+	f.SetCellValue(utils.NameSMFTeam, "B1", "Done Tasks")
+	f.SetCellValue(utils.NameSMFTeam, "C1", "Progress Tasks")
+	f.SetCellValue(utils.NameSMFTeam, "D1", "Remaining Tasks")
+	f.SetCellValue(utils.NameSMFTeam, "E1", "Extra Tasks")
+	f.SetCellValue(utils.NameSMFTeam, "F1", "Tasks")
+	f.SetCellValue(utils.NameSMFTeam, "G1", "Done Hours")
+	f.SetCellValue(utils.NameSMFTeam, "H1", "Progress Hours")
+	f.SetCellValue(utils.NameSMFTeam, "I1", "Extra Hours")
+	f.SetCellValue(utils.NameSMFTeam, "J1", "Hours")
+	f.SetCellValue(utils.NameSMFTeam, "A13", "Total")
 	i := 0
 	for _, stat := range memberData.MemberStats {
-		f.SetCellValue(utils.NameSMFTeam, "A"+strconv.Itoa((i+2)), stat.FullName)
+		f.SetCellValue(utils.NameSMFTeam, "A"+strconv.Itoa((i+2)), stat.Name)
 		f.SetCellValue(utils.NameSMFTeam, "B"+strconv.Itoa((i+2)), stat.NDoneTasks)
 		totalDoneTasks += int(stat.NDoneTasks)
 		f.SetCellValue(utils.NameSMFTeam, "C"+strconv.Itoa((i+2)), stat.NProgressTasks)
@@ -174,12 +176,23 @@ func ExportTotalMemberToCsv(memberData *TrelloClient) error {
 }
 
 func ExportDataOfMembersToExcel(memberData *TrelloClient) {
+	var totalTasks int32 = 0
+	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
+	startDay := viper.GetString("trello.startDay")
+	startDayOfSprint, err := time.Parse("02-01-2006", startDay)
+	if err != nil {
+		logger.Error("Cannot parse start day: ", err)
+	}
+	startDayOfSprintInVn := utils.TimeLocal(startDayOfSprint)
+	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDay(startDayOfSprintInVn) // number of days from start day to current day
+
 	for memberId, _ := range memberData.Members {
-		totalTasks := memberData.MemberStats[memberId].NTasks
+		totalTasks += memberData.MemberStats[memberId].NTasks
 		totalHours := memberData.MemberStats[memberId].NHours
-		numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
-		currentDay :=  memberData.DailyTrackingStats.
-		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours)
+	}
+
+	for memberId, _ := range memberData.Members {
+		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours, numberOfDayToCurrentDay)
 		DrawLineChart(memberData.MemberStats[memberId].Name)
 	}
 }
@@ -188,19 +201,25 @@ func ExportDataOfDailyToExcel(memberData *TrelloClient) {
 	numberOfMembers := len(memberData.Members)
 	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
 	memberData.DailyTrackingStats.PrintLinkList()
-	//logger.Debugln("!!!2: ", numberOfMembers)
 	initTotalTime := 8 * numberOfMembers * numberOfSprint
+	startDay := viper.GetString("trello.startDay")
+	startDayOfSprint, err := time.Parse("02-01-2006", startDay)
+	if err != nil {
+		logger.Error("Cannot parse start day: ", err)
+	}
+	startDayOfSprintInVn := utils.TimeLocal(startDayOfSprint)
+	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDay(startDayOfSprintInVn) // number of days from start day to current day
+	logger.Info("Number of: ", numberOfDayToCurrentDay)
 	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList(numberOfMembers, initTotalTime)
-	//logger.Debugln("^^^: ", dataDailyList)
-	SetCellValue("Daily", dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint)
+	SetCellValue(utils.MemberActionDaily, dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint, numberOfDayToCurrentDay)     // total tasts here
 }
 
 func SortMembersActionsDailyUseName(memberActions []*MemberActions) {
 	length := len(memberActions)
-	for i := 0; i < length - 1; i++ {
-		for j := 0; j < length - i - 1; j++ {
+	for i := 0; i < length-1; i++ {
+		for j := 0; j < length-i-1; j++ {
 			if memberActions[j].NameOfMember > memberActions[j+1].NameOfMember {
-				memberActions[j], memberActions[j + 1] = memberActions[j + 1], memberActions[j]
+				memberActions[j], memberActions[j+1] = memberActions[j+1], memberActions[j]
 			}
 		}
 	}
@@ -208,10 +227,10 @@ func SortMembersActionsDailyUseName(memberActions []*MemberActions) {
 
 func SortMembersActionsDailyUseTime(memberActions []*MemberActions) {
 	length := len(memberActions)
-	for i := 0; i < length - 1; i++ {
-		for j := 0; j < length - i - 1; j++ {
+	for i := 0; i < length-1; i++ {
+		for j := 0; j < length-i-1; j++ {
 			if memberActions[j].Time.After(memberActions[j+1].Time) {
-				memberActions[j], memberActions[j + 1] = memberActions[j + 1], memberActions[j]
+				memberActions[j], memberActions[j+1] = memberActions[j+1], memberActions[j]
 			}
 		}
 	}

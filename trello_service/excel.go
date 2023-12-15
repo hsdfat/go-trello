@@ -41,7 +41,7 @@ func creatSheet(eachMemberData *MemberStats, time time.Time) {
 	}
 }
 
-func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberOfSprint int) {
+func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberOfSprint int, numberOfDayToCurrentDay int) {
 	//open file
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
@@ -51,14 +51,14 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 	defer func() {
 		// Close the spreadsheet.
 		if err := f.Close(); err != nil {
-			fmt.Println(err)
+			logger.Error(err)
 		}
 	}()
 
 	// Create a new sheet.
 	index, err := f.NewSheet(nameOfSheet)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
 	//set size of coloum
 	err_size_column := f.SetColWidth(nameOfSheet, "A", "L", 15)
@@ -72,7 +72,9 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 	}
 
 	var j int = 65
+	var k int = 65
 	var countDay int = 1
+	var countDayDaily int = 1
 	//get data to sheet of each member
 	f.SetCellValue(nameOfSheet, "A1", "Date")
 	f.SetCellValue(nameOfSheet, "A2", "Tasks")
@@ -85,21 +87,27 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 
 	for i := 0; i < len(dataDaily); i += 4 {
 		date := dataDaily[i]
-		remainingTasks := dataDaily[i+1]
-		remainingHours := dataDaily[i+2]
-		remainingHoursLinear := dataDaily[i+3]
 		f.SetCellValue(nameOfSheet, string((j+2))+"1", date)
-		//remainingTasksInt, err := strconv.Atoi(remainingTasks)
-		f.SetCellValue(nameOfSheet, string((j+2))+"2", utils.ConvertStringToInt(remainingTasks)) //
 		f.SetCellValue(nameOfSheet, string((j+2))+"3", utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, int32(totalTask)), 2))
-		f.SetCellValue(nameOfSheet, string((j+2))+"4", utils.ConvertStringToInt(remainingHours))       //
-		f.SetCellValue(nameOfSheet, string((j+2))+"5", utils.ConvertStringToInt(remainingHoursLinear)) //
 		j += 1
 		countDay += 1
 	}
+
+	for i := 0; i < numberOfDayToCurrentDay; i += 4 {
+		// date := dataDaily[i]
+		remainingTasks := dataDaily[i+1]
+		remainingHours := dataDaily[i+2]
+		remainingHoursLinear := dataDaily[i+3]
+		// f.SetCellValue(nameOfSheet, string((k+2))+"1", date)
+		f.SetCellValue(nameOfSheet, string((k+2))+"2", utils.ConvertStringToInt(remainingTasks)) //
+		f.SetCellValue(nameOfSheet, string((k+2))+"4", utils.ConvertStringToInt(remainingHours))       //
+		f.SetCellValue(nameOfSheet, string((k+2))+"5", utils.ConvertStringToInt(remainingHoursLinear)) //
+		k += 1
+		countDayDaily += 1
+	}
 	f.SetActiveSheet(index)
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
-		fmt.Println(err)
+		logger.Error(err)
 	}
 }
 
@@ -821,6 +829,43 @@ func SetMemberActionsSprint(memberActionDaily string, memberActions []*MemberAct
 		f.SetCellValue(memberActionDaily, "P"+strconv.Itoa(row), memberAction.ActionTypes)
 		row += 1
 	}
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
+		logger.Error(err)
+	}
+}
+
+func DeleteSheet (nameOfSheet string) bool{
+	f, err := excelize.OpenFile(utils.NameOfFile)
+	if err != nil {
+		logger.Error(err)
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			logger.Error(err)
+		}
+	}()
+	errDeleteSheet := f.DeleteSheet(nameOfSheet)
+	if errDeleteSheet != nil {
+		logger.Errorln(errDeleteSheet)
+		return false
+	}
+	return true
+}
+
+func SaveFile () {
+	f, err := excelize.OpenFile(utils.NameOfFile)
+	if err != nil {
+		logger.Error(err)
+	}
+	defer func() {
+		// Close the spreadsheet.
+		if err := f.Close(); err != nil {
+			logger.Error(err)
+		}
+	}()
+
+	// f.SetActiveSheet(index)
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		logger.Error(err)
 	}

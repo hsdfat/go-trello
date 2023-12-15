@@ -47,6 +47,7 @@ func main() {
 
 	ins := trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
 	//ins.DailyTrackingStats.PrintMemberActions()
+	trello_service.ConvertNameOfMembers(ins)
 	trello_service.ExportTotalMemberToCsv(ins)
 	trello_service.DrawPieChartSMF(utils.NameSMFTeam)
 	trello_service.ExportDataOfMembersToExcel(ins)							//Sheet: Data each member of team
@@ -55,5 +56,6 @@ func main() {
 	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily)
 	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()				//Sheet: Daily
 	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()
-
+	trello_service.DeleteSheet("Sheet1")
+	trello_service.SaveFile()
 }

@@ -7,6 +7,20 @@ import (
 	"github.com/adlio/trello"
 )
 
+var nameOfMembers = map[string]string{
+    "nguyenanhtuan010598": "tuanna137",
+    "phatlechi": "phatlc",
+    "bobochacha07": "binhtd7",
+	"kuroka1":"dongnt18",
+	"dokieuminhdkm": "minhdk",
+	"hiunguyn484":"hieund152",
+	"namnguyen08489158":"namnp16",
+	"thinhnx5": "thinhnx5",
+	"xuanbachtrng": "bachtx",
+	"hungto18":"hungto18",
+	"maingoctrinh":"trinhmn",
+}
+
 // GetMembersInBoard returns a list of members of the board
 func (c *TrelloClient) GetMembersInBoard() (members []*trello.Member, err error) {
 	if c.Board == nil {
@@ -17,8 +31,9 @@ func (c *TrelloClient) GetMembersInBoard() (members []*trello.Member, err error)
 		return nil, err
 	}
 
-	logger.Debugln("Init members statistics")
+	logger.Debug("Init members statistics")
 	for _, m := range members {
+
 		m.SetClient(c.Client)
 		c.MemberStats[m.ID] = &MemberStats{
 			Email:    m.Email,
@@ -80,4 +95,24 @@ func FilterCardByMember(id string) (cards []*trello.Card, err error) {
 	}
 
 	return
+}
+
+func ConvertNameOfMembers(memberData *TrelloClient) {
+	for nameMemberInEmail, nameMemberInCompany := range nameOfMembers {
+		for memberId, _ := range memberData.Members {
+			nameEachMemberInCompany := memberData.MemberStats[memberId].Name
+			if nameMemberInEmail == nameEachMemberInCompany {
+				memberData.MemberStats[memberId].Name = nameMemberInCompany
+			}	
+		}
+	}
+}
+
+
+func ConvertNameOfMembersInLinkedList(memberStat *MemberStats) {
+	for nameMemberInEmail, nameMemberInCompany := range nameOfMembers {
+		if nameMemberInEmail == memberStat.Name {
+			memberStat.Name = nameMemberInCompany
+		}	
+	}
 }

@@ -12,22 +12,26 @@ import (
 )
 
 // GetCardsInBoard returns a list of cards visible in the board
-func (c *TrelloClient) GetCardsInBoard(id string) (cards []*trello.Card, err error) {
+func (c *TrelloClient) GetCardsInBoard(id string) (cards []*trello.Card, err error, number int) {
 	if c == nil || c.Board == nil {
-		return nil, fmt.Errorf("no board specified, get board first")
-
+		return nil, fmt.Errorf("no board specified, get board first"), 0
 	}
 	path := fmt.Sprintf("/board/%s/cards/visible", id)
 	err = c.Client.Get(path, trello.Defaults(), &cards)
 	if err != nil {
-		return nil, err
+		return nil, err, 0
 	}
 	// logger.Debugln("Number of cards visible", len(cards))
+	i := 0
 	for _, card := range cards {
 		card.SetClient(c.Client)
 		c.Cards[card.ID] = card
+		i += 1
+		logger.Info("Numbe3: ")
 	}
-	return cards, err
+	number = i
+	logger.Info("Numbe: ", number)
+	return cards, err, number
 }
 
 // FilterTasks gets tasks from a list of cards
@@ -38,7 +42,6 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 	}
 	for _, card := range cards {
 		ok, hour, isExtraTask := ValidateTaskName(card.Name)
-		// logger.Debug("card name: ", card.Name)
 		// logger.Debug("ok: ", ok)
 		// logger.Debug("hour: ", hour)
 		if ok {
@@ -135,6 +138,7 @@ func ValidateTaskName(name string) (bool, int32, bool) {
 			return false, 0, isExtraTask
 		}
 	}
+	// GroupName
 	return true, int32(timeValueInt), isExtraTask
 }
 

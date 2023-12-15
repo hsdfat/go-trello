@@ -127,42 +127,56 @@ func (list *DateLinkedList) CountDaysInSprint() int {
 	return count
 }
 
-func (list *DateLinkedList) CountNumberToCurrentDay (starDayOfSprint time.Time) int {
-	count := 0
+func (list *DateLinkedList) CountNumberToCurrentDay(starDayOfSprintInVn time.Time) int {
+	count := 1
+	var tomorrowStartDay time.Time
 	temp := list.head
+	tomorrowStartDay = temp.stat.Date
+	logger.Info("temp: ", tomorrowStartDay)
+	currentTimeInVn := utils.TimeLocal(time.Now())
 	for temp != nil {
-		temp = temp.next
-		if utils.IsDateEqual(&starDayOfSprint, &time.Now()) {
-			
+		if !utils.IsDateEqual(&tomorrowStartDay, &currentTimeInVn) {
+			tomorrowStartDay = starDayOfSprintInVn.AddDate(0, 0, 1)
+			logger.Info("temp2: ", tomorrowStartDay)
+		}
+		if utils.IsDateEqual(&currentTimeInVn, &currentTimeInVn) {
+			return count
 		}
 		count += 1
+		temp = temp.next
 	}
+	return count
 }
 
-func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask int32, numberOfSprint int, totalHours int32) {
+func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask int32, numberOfSprint int, totalHours int32, numberOfDayToCurrentDay int) {
 	numberOfTasksNeedDone := totalTask
 	numberOfRemainingHours := totalHours
+	number := 0 // number to check with numberOfDaysToCurrentDay
 
 	//export to excel
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
-		logger.Errorln(err)
+		logger.Error(err)
 	}
 	defer func() {
 		// Close the spreadsheet.
 		if err := f.Close(); err != nil {
-			logger.Errorln(err)
+			logger.Error(err)
 		}
 	}()
 
 	if list.head == nil {
-		logger.Debugln("List is empty")
+		logger.Debug("List is empty")
 		return
 	}
 
 	current := list.head
+	currentReal := list.head
 	var i int = 65
+	var j int = 65
 	var countDay int = 1
+
+	//get name and expected line to sheet of each member
 	for current != nil {
 		stat := current.stat
 		if stat == nil {
@@ -175,29 +189,44 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 			current = current.next
 			continue
 		}
-		//get data to sheet of each member
+		// Create a new sheet.
+		ConvertNameOfMembersInLinkedList(memberStat)
+		index, err := f.NewSheet(memberStat.Name)
+		if err != nil {
+			logger.Errorln(err)
+		}
 		f.SetCellValue(memberStat.Name, "A1", "Date")
 		f.SetCellValue(memberStat.Name, "A2", "Tasks")
 		f.SetCellValue(memberStat.Name, "A3", "Expected")
 		f.SetCellValue(memberStat.Name, "A4", "Hours")
 		f.SetCellValue(memberStat.Name, "B1", "StartDay")
-		f.SetCellValue(memberStat.Name, "B2", strconv.Itoa(int(totalTask)))			//why is 0
-		//logger.Info("member nstart: ", memberStat.NTasks)
+		f.SetCellValue(memberStat.Name, "B2", strconv.Itoa(int(totalTask)))
 		f.SetCellValue(memberStat.Name, "B3", strconv.Itoa(int(totalTask)))
-		// Create a new sheet.
-		index, err := f.NewSheet(memberStat.Name)
-		if err != nil {
-			logger.Errorln(err)
-		}
-		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))	
-		numberOfTasksNeedDone = numberOfTasksNeedDone  - memberStat.NDoneTasks		
-		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
-		f.SetCellValue(memberStat.Name, string((i+2))+"1", date)
-		f.SetCellValue(memberStat.Name, string((i+2))+"2", numberOfTasksNeedDone)
-
 		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
-		//fmt.Println("************", expected_task)
 		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task)
+		f.SetActiveSheet(index)
+		i += 1
+		countDay += 1
+		current = current.next
+	}
+	for currentReal != nil {			//pointer to check real time
+		stat := currentReal.stat
+		if stat == nil {
+			currentReal = currentReal.next
+			continue
+		}
+		memberStat, ok := stat.MemberStats[id]
+
+		if !ok {
+			currentReal = currentReal.next
+			continue
+		}
+		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
+		numberOfTasksNeedDone = numberOfTasksNeedDone - memberStat.NDoneTasks
+		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
+		f.SetCellValue(memberStat.Name, string((j+2))+"1", date)
+		f.SetCellValue(memberStat.Name, string((j+2))+"2", numberOfTasksNeedDone)
+		
 		//set size of coloum
 		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)
 		if err_size_column != nil {
@@ -209,14 +238,18 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 			fmt.Println(err_size_height)
 		}
 
-		f.SetActiveSheet(index)
-		countDay += 1
-		i += 1
-		current = current.next
+		// f.SetActiveSheet(index)
+		// countDay += 1
+		j += 1
+		if number == numberOfDayToCurrentDay {
+			break
+		}
+		number += 1
+		currentReal = currentReal.next
 	}
 
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
-		fmt.Println(err)
+		logger.Error(err)
 	}
 }
 
@@ -266,7 +299,7 @@ func (list *DateLinkedList) PrintMemberActions() {
 
 func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	var memberActions []*MemberActions
-	today := time.Now()
+	today := utils.TimeLocal(time.Now())
 	yesterday := today.AddDate(0, 0, -1)
 	if list.head == nil {
 		logger.Debug("List is empty")
@@ -275,6 +308,7 @@ func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	for current != nil {
 		stat := current.stat
 		for _, infoAction := range stat.MemberActions {
+			infoAction.Time = utils.TimeLocal(infoAction.Time)				//reset value of infoAction.Time to local time
 			if utils.IsDateEqual(&infoAction.Time, &yesterday) {
 				memberActions = append(memberActions, infoAction)
 			}
@@ -302,8 +336,8 @@ func (list *DateLinkedList) GetMemberActionsSprint() []*MemberActions {
 
 func (list *DateLinkedList) ExportMemberActionsDailyToExcel() {
 	memberActions := list.GetMemberActionsDaily()
-	if memberActions == nil {
-		logger.Info("Not actions in this day: ", time.Now())
+	if memberActions != nil {
+		logger.Info("Not actions in this day: ", utils.TimeLocal(time.Now()))
 	}
 	SortMembersActionsDailyUseName(memberActions)
 	SortMembersActionsDailyUseTime(memberActions)

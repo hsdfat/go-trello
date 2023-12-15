@@ -14,7 +14,7 @@ var (
 	NameOfFile        = "SMF-Trello.xlsx"
 )
 
-// GetYValue returns the values a, b of Expected function (y = ax + b)
+// GetYValue returns the values a, b of Expected line function (y = ax + b)
 func GetYValue(a float64, x int, b int32) float64 {
 	return float64(x)*a + float64(b)
 }
