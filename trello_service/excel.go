@@ -795,7 +795,7 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 	}
 }
 
-func SetMemberActionsSprint(memberActionDaily string, memberActions []*MemberActions) {
+func SetMemberActionsSprint(nameOfSheet string, memberActions []*MemberActions) {
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Error(err)
@@ -805,33 +805,76 @@ func SetMemberActionsSprint(memberActionDaily string, memberActions []*MemberAct
 			logger.Error(err)
 		}
 	}()
-	columnSizeErr := f.SetColWidth(memberActionDaily, "J", "O", 15)
+	columnSizeErr := f.SetColWidth(nameOfSheet, "J", "O", 15)
 	if columnSizeErr != nil {
 		logger.Error(columnSizeErr)
 	}
-	f.SetCellValue(memberActionDaily, "K1", "Time")
-	f.SetCellValue(memberActionDaily, "L1", "List Before")
-	f.SetCellValue(memberActionDaily, "M1", "List After")
-	f.SetCellValue(memberActionDaily, "N1", "Name")
-	f.SetCellValue(memberActionDaily, "O1", "Task")
-	f.SetCellValue(memberActionDaily, "P1", "Action Types")
+	f.SetCellValue(nameOfSheet, "K1", "Time")
+	f.SetCellValue(nameOfSheet, "L1", "List Before")
+	f.SetCellValue(nameOfSheet, "M1", "List After")
+	f.SetCellValue(nameOfSheet, "N1", "Name")
+	f.SetCellValue(nameOfSheet, "O1", "Task")
+	f.SetCellValue(nameOfSheet, "P1", "Action Types")
 	row := 2
 	for _, memberAction := range memberActions {
-		// logger.Info("**************************************************")
-		// logger.Info(memberAction.Time)
-		// logger.Info(memberAction.ListBefore)
-		// logger.Info(memberAction.ListAfter)
-		// logger.Info(memberAction.NameOfMember)
-		// logger.Info(memberAction.ContentOfTask)
-		// logger.Info(memberAction.ActionTypes)
-		f.SetCellValue(memberActionDaily, "K"+strconv.Itoa(row), memberAction.Time)
-		f.SetCellValue(memberActionDaily, "L"+strconv.Itoa(row), memberAction.ListBefore)
-		f.SetCellValue(memberActionDaily, "M"+strconv.Itoa(row), memberAction.ListAfter)
-		f.SetCellValue(memberActionDaily, "N"+strconv.Itoa(row), memberAction.NameOfMember)
-		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.ContentOfTask)
-		f.SetCellValue(memberActionDaily, "P"+strconv.Itoa(row), memberAction.ActionTypes)
+		// logger.Info("--------------------------------")
+		// logger.Info("memberAction.Time: ", memberAction.Time)
+		// logger.Info("memberAction.ListBefore: ", memberAction.ListBefore)
+		// logger.Info("memberAction.ListAfter: ", memberAction.ListAfter)
+		// logger.Info("memberAction.NameOfMember: ", memberAction.NameOfMember)
+		// logger.Info("memberAction.ContentOfTask: ", memberAction.ContentOfTask)
+		// logger.Info("memberAction.ActionTypes: ", memberAction.ActionTypes)
+		// logger.Info("memberAction.TypeOfTask: ", memberAction.TypeOfTask)
+		
+		f.SetCellValue(nameOfSheet, "K"+strconv.Itoa(row), memberAction.Time)
+		f.SetCellValue(nameOfSheet, "L"+strconv.Itoa(row), memberAction.ListBefore)
+		f.SetCellValue(nameOfSheet, "M"+strconv.Itoa(row), memberAction.ListAfter)
+		f.SetCellValue(nameOfSheet, "N"+strconv.Itoa(row), memberAction.NameOfMember)
+		f.SetCellValue(nameOfSheet, "O"+strconv.Itoa(row), memberAction.ContentOfTask)
+		f.SetCellValue(nameOfSheet, "P"+strconv.Itoa(row), memberAction.ActionTypes)
 		row += 1
 	}
+	if err := f.SaveAs(utils.NameOfFile); err != nil {
+		logger.Error(err)
+	}
+}
+
+func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
+	f, err := excelize.OpenFile(utils.NameOfFile)
+	if err != nil {
+		logger.Error(err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			logger.Error(err)
+		}
+	}()
+	// Create a new sheet.
+	index, err := f.NewSheet(nameOfSheet)
+	if err != nil {
+		logger.Errorln(err)
+	}
+	f.SetCellValue(nameOfSheet, "A1", "Type of task")
+	f.SetCellValue(nameOfSheet, "B1", "Card name")
+	// f.SetCellValue(nameOfSheet, "C1", "Content")
+	// f.SetCellValue(nameOfSheet, "D1", "Name of member")
+	row := 2
+	for _, task := range tasks {
+		logger.Info("************************")
+		//logger.Info("memberAction.Time: ", task.Time)
+		logger.Info("task.Name of member: ", task.TypeOfTask)
+		logger.Info("task.NameOfMember: ", task.Card.Name)
+		logger.Info("memberAction.Current Status: ", task.)
+		//logger.Info("memberAction.ContentOfTask: ", task.ContentOfTask)
+		
+		f.SetCellValue(nameOfSheet, "A"+strconv.Itoa(row), task.TypeOfTask)
+		f.SetCellValue(nameOfSheet, "B"+strconv.Itoa(row), task.Card.Name)
+		// f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), task.NameOfMember)
+		// f.SetCellValue(nameOfSheet, "C"+strconv.Itoa(row), task.ListAfter)
+		// f.SetCellValue(nameOfSheet, "E"+strconv.Itoa(row), task.ContentOfTask)
+		row += 1
+	}
+	f.SetActiveSheet(index)
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		logger.Error(err)
 	}

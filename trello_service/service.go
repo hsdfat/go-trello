@@ -5,6 +5,7 @@ import (
 	"go-trello/logger"
 	"go-trello/utils"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/adlio/trello"
@@ -73,14 +74,12 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	// }
 	cards, err, number := instance.GetCardsInBoard(id)
 	logger.Info("@#: ", number)
-
-	logger.Info("Get cards", len(cards))
-
 	tasks, err := instance.FilterTasks(cards)
 	if err != nil {
 		logger.Error(err)
 	}
 	instance.Tasks = tasks
+
 	// Statistics members
 	err = instance.StatisticTask(tasks)
 	if err != nil {
@@ -225,6 +224,40 @@ func SortMembersActionsDailyUseName(memberActions []*MemberActions) {
 	}
 }
 
+// SortTasksUseTypeOfTask returns list sorted of type of tasks, ex: Tool hieu nang
+func SortTasksUseTypeOfTask(tasks []*Task) {
+	length := len(tasks)
+	for i := 0; i < length-1; i++ {
+		for j := 0; j < length-i-1; j++ {
+			if tasks[j].TypeOfTask > tasks[j+1].TypeOfTask {
+				tasks[j], tasks[j+1] = tasks[j+1], tasks[j]
+			}
+		}
+	}
+}
+
+func SortTasksUseCardName(tasks []*Task) {
+	length := len(tasks)
+	for i := 0; i < length-1; i++ {
+		for j := 0; j < length-i-1; j++ {
+			if tasks[j].Card.Name > tasks[j+1].Card.Name {
+				tasks[j], tasks[j+1] = tasks[j+1], tasks[j]
+			}
+		}
+	}
+}
+
+func SortMembersActionsDailyUseTypeOfTask(tasks []*Task) {
+	length := len(tasks)
+	for i := 0; i < length-1; i++ {
+		for j := 0; j < length-i-1; j++ {
+			if tasks[j].TypeOfTask > tasks[j+1].TypeOfTask {
+				tasks[j], tasks[j+1] = tasks[j+1], tasks[j]
+			}
+		}
+	}
+}
+
 func SortMembersActionsDailyUseTime(memberActions []*MemberActions) {
 	length := len(memberActions)
 	for i := 0; i < length-1; i++ {
@@ -233,5 +266,22 @@ func SortMembersActionsDailyUseTime(memberActions []*MemberActions) {
 				memberActions[j], memberActions[j+1] = memberActions[j+1], memberActions[j]
 			}
 		}
+	}
+}
+
+func GetValueToGroup(group *Group, memberAction *MemberActions) {
+	group.Time = memberAction.Time
+	group.Name = memberAction.TypeOfTask // ex: Tool hieu nang
+	if strings.Contains(memberAction.ListAfter, "Done") {
+		group.DoneTask = memberAction.ListAfter //ex: status of task
+	}
+	if memberAction.ListAfter == "Design" || memberAction.ListAfter == "To Do" || memberAction.ListAfter == "Doing" || memberAction.ListAfter == "Code Review" || memberAction.ListAfter == "Testing" {
+		group.ProgressTask = memberAction.ListAfter
+	}
+	if memberAction.ListAfter == "Sprint Backlog" {
+		group.SprintBacklogTask = memberAction.ListAfter
+	}
+	if memberAction.ListAfter == "Pending" || memberAction.ListAfter == "pending" {
+		group.SprintBacklogTask = memberAction.ListAfter
 	}
 }

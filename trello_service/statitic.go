@@ -10,4 +10,3 @@ func (c *TrelloClient) PrintMemberStatistics() {
 	}
 }
 
-

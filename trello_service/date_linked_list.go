@@ -299,6 +299,12 @@ func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	var memberActions []*MemberActions
 	today := utils.TimeLocal(time.Now())
 	yesterday := today.AddDate(0, 0, -1)
+
+	weekday := utils.TimeLocal(time.Now()).Weekday()
+	if weekday == 1 {
+		yesterday = today.AddDate(0, 0, -3)
+	}
+
 	if list.head == nil {
 		logger.Debug("List is empty")
 	}
@@ -352,6 +358,17 @@ func (list *DateLinkedList) ExportMemberActionsSprintToExcel() {
 	SetMemberActionsSprint(utils.NameSMFTeam, memberActions)
 }
 
+// ExportGroupActionsSprintToExcel
+func (list *DateLinkedList) ExportGroupActionsSprintToExcel(tasks []*Task) {
+	// memberActions := list.GetMemberActionsSprint()
+	// if memberActions == nil {
+	// 	logger.Info("Not actions in this sprint: ", time.Now())
+	// }
+	SortTasksUseTypeOfTask(tasks)
+	SortTasksUseCardName(tasks)
+	SetGroupActionsSprint(utils.Group, tasks)
+}
+
 func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg *sync.WaitGroup) {
 	defer wg.Done()
 
@@ -402,6 +419,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 				if action.Data.Card != nil {
 					cardId := action.Data.Card.ID
 					card, ok := ins.Cards[cardId]
+					_, _, _, typeOfTask := ValidateTaskName(card.Name)
 					if ok {
 						// get memberId
 						memberIdList := card.IDMembers
@@ -413,6 +431,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 									Time:          utils.TimeLocal(action.Date),
 									NameOfMember:  memberStat.FullName,
 									ContentOfTask: action.Data.Card.Name,
+									TypeOfTask:    typeOfTask, // ex: Tool hieu nang
 								}
 								if action.Data.ListBefore != nil {
 									memberAction.ListBefore = action.Data.ListBefore.Name

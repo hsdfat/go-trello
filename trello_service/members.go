@@ -33,12 +33,12 @@ func (c *TrelloClient) GetMembersInBoard() (members []*trello.Member, err error)
 
 	logger.Debug("Init members statistics")
 	for _, m := range members {
-
 		m.SetClient(c.Client)
 		c.MemberStats[m.ID] = &MemberStats{
 			Email:    m.Email,
 			Name:     m.Username,
 			FullName: m.FullName,
+			// TypeOfTask: m.TypeOfTask,
 		}
 		c.Members[m.ID] = m
 	}

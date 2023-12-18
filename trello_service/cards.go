@@ -27,7 +27,6 @@ func (c *TrelloClient) GetCardsInBoard(id string) (cards []*trello.Card, err err
 		card.SetClient(c.Client)
 		c.Cards[card.ID] = card
 		i += 1
-		logger.Info("Numbe3: ")
 	}
 	number = i
 	logger.Info("Numbe: ", number)
@@ -41,7 +40,7 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 		return nil, fmt.Errorf("no board specified, get board first")
 	}
 	for _, card := range cards {
-		ok, hour, isExtraTask := ValidateTaskName(card.Name)
+		ok, hour, isExtraTask, typeOfTask := ValidateTaskName(card.Name)
 		// logger.Debug("ok: ", ok)
 		// logger.Debug("hour: ", hour)
 		if ok {
@@ -51,6 +50,7 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 				IsDone:       card.IDList == c.DoneList,
 				IsInProgress: c.CheckTaskInProgress(card),
 				IsExtra:      isExtraTask,
+				TypeOfTask: typeOfTask, 		// ex: Test hieu nang
 			}
 			// logger.Debug("is Extra Tast: ", isExtraTask)
 			creationTime, err := GetCreationTime(card.ID)
@@ -114,20 +114,26 @@ func (c *TrelloClient) StatisticTask(tasks []*Task) (err error) {
 }
 
 // ValidateTasksName validates card name is task type or not
-func ValidateTaskName(name string) (bool, int32, bool) {
+func ValidateTaskName(name string) (bool, int32, bool, string) {
 	re := regexp.MustCompile(TASK_NAME_PATTERN)
 	if !re.MatchString(name) {
-		return false, 0, false
+		return false, 0, false, ""
 	}
 	matches := re.FindStringSubmatch(name)
 	extraTask := matches[1]
+	typeOfTask := matches[3]
 	if (len(matches) < 3) && (extraTask != "Ngoài") {
-		return true, 0, false
+		return true, 0, false, typeOfTask
 	}
+	// logger.Info("---------------------------")
+	// logger.Info("matches[0]: ", matches[0])		// content of task
+	// logger.Info("matches[1]: ", matches[1])		
+	// logger.Info("matches[2]: ", matches[2])		// time estimate for task
+	// logger.Info("matches[3]: ", matches[3])		// type of task
 	timeValue := matches[2]
 	timeValueInt, err := strconv.Atoi(timeValue)
 	if err != nil {
-		return true, 0, false
+		return true, 0, false, typeOfTask
 	}
 	isExtraTask := false
 	// logger.Debug("value of extraTask: ", extraTask)
@@ -135,11 +141,11 @@ func ValidateTaskName(name string) (bool, int32, bool) {
 		isExtraTask = true
 		timeValueInt, err = strconv.Atoi(timeValue)
 		if err != nil {
-			return false, 0, isExtraTask
+			return false, 0, isExtraTask, typeOfTask
 		}
 	}
 	// GroupName
-	return true, int32(timeValueInt), isExtraTask
+	return true, int32(timeValueInt), isExtraTask, typeOfTask
 }
 
 // CheckCardInSkipList returns true if card in the skip list

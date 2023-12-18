@@ -40,6 +40,7 @@ type MemberActions struct {
 	NameOfMember  string
 	ContentOfTask string
 	ActionTypes []string
+	TypeOfTask string					// ex: Tool hieu nang
 }
 
 type MemberStats struct {
@@ -56,6 +57,7 @@ type MemberStats struct {
 	NExtraTasks    int32 // tasks
 	NExtraHours    int32 // hours
 	Actions        *trello.Action
+	TypeOfTask 	   string					// ex: Tool hieu nang
 }
 
 type DailyTrackingStats struct {
@@ -104,6 +106,8 @@ type Task struct {
 	IsInProgress bool
 	IsExtra      bool
 	Hour         int32
+	TypeOfTask   string
+	Members      []*trello.Member
 }
 
 // CardProgress represents the progress of a card.

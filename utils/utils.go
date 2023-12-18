@@ -11,6 +11,7 @@ import (
 var (
 	MemberActionDaily = "Daily"
 	NameSMFTeam       = "SMF"
+	Group			  = "Group"
 	NameOfFile        = "SMF-Trello.xlsx"
 )
 
