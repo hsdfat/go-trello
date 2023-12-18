@@ -40,7 +40,7 @@ func main() {
 	endDayTime, err := time.Parse("02-01-2006", endDay)
 
 	startDayTime = utils.TimeLocal(startDayTime)
-    endDayTime = utils.TimeLocal(endDayTime)
+	endDayTime = utils.TimeLocal(endDayTime)
 	if err != nil {
 		log.Panicln("Cannot parse end day: ", err)
 	}
@@ -50,12 +50,12 @@ func main() {
 	trello_service.ConvertNameOfMembers(ins)
 	trello_service.ExportTotalMemberToCsv(ins)
 	trello_service.DrawPieChartSMF(utils.NameSMFTeam)
-	trello_service.ExportDataOfMembersToExcel(ins)							//Sheet: Data each member of team
-	trello_service.ExportDataOfDailyToExcel(ins)							//Data of sheet daily
-	trello_service.DrawDailyLineChart(utils.MemberActionDaily)
-	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily)
-	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()				//Sheet: Daily
-	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()
+	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()        //export data of tracking action in SMF
+	trello_service.ExportDataOfDailyToExcel(ins)                     //Data of Sheet Daily
+	trello_service.DrawDailyLineChart(utils.MemberActionDaily)       //draw line chart in sheet daily
+	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily) //draw column chart in Daily
+	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()         //export data of tracking action in Daily
+	trello_service.ExportDataOfMembersToExcel(ins)                   //Sheet: Data each member of team
 	trello_service.DeleteSheet("Sheet1")
-	trello_service.SaveFile()
+	//trello_service.SaveFile()
 }

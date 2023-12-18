@@ -179,16 +179,15 @@ func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
 	startDay := viper.GetString("trello.startDay")
 	startDayOfSprint, err := time.Parse("02-01-2006", startDay)
+	if err != nil {
+		logger.Error("Cannot parse start day: ", err)
+	}
 	startDayOfSprintInVn := utils.TimeLocal(startDayOfSprint)
 	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDay(startDayOfSprintInVn) // number of days from start day to current day
-	var totalTasks int32 = 0
-	var totalHours int32 = 0
+
 	for memberId, _ := range memberData.Members {
-		totalTasks += memberData.MemberStats[memberId].NTasks
-		totalHours += memberData.MemberStats[memberId].NHours
-		if err != nil {
-			logger.Error("Cannot parse start day: ", err)
-		}
+		totalTasks := memberData.MemberStats[memberId].NTasks
+		totalHours := memberData.MemberStats[memberId].NHours
 		memberData.DailyTrackingStats.ExportDataOfEachMemberToExcel(memberId, totalTasks, numberOfSprint, totalHours, numberOfDayToCurrentDay)
 		DrawLineChart(memberData.MemberStats[memberId].Name)
 	}
@@ -198,7 +197,10 @@ func ExportDataOfDailyToExcel(memberData *TrelloClient) {
 	numberOfMembers := len(memberData.Members)
 	numberOfSprint := memberData.DailyTrackingStats.CountDaysInSprint()
 	memberData.DailyTrackingStats.PrintLinkList()
-	initTotalTime := 8 * numberOfMembers * numberOfSprint
+
+	//initTotalTime := 8 * numberOfMembers * numberOfSprint
+	initTotalTime := viper.GetInt("smfHour.smf")
+
 	startDay := viper.GetString("trello.startDay")
 	startDayOfSprint, err := time.Parse("02-01-2006", startDay)
 	if err != nil {
@@ -208,7 +210,8 @@ func ExportDataOfDailyToExcel(memberData *TrelloClient) {
 	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDay(startDayOfSprintInVn) // number of days from start day to current day
 	logger.Info("Number of: ", numberOfDayToCurrentDay)
 	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList(numberOfMembers, initTotalTime)
-	SetCellValue(utils.MemberActionDaily, dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint, numberOfDayToCurrentDay)     // total tasts here
+	//SetCellValue return values of excel
+	SetCellValue(utils.MemberActionDaily, dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint, numberOfDayToCurrentDay) // total tasts here
 }
 
 func SortMembersActionsDailyUseName(memberActions []*MemberActions) {

@@ -78,16 +78,14 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList(numberOfMembers int
 			current = current.next
 			continue
 		}
-		//remainingTasks += stat.NTasks - stat.NProgressTasks - stat.NDoneTasks
 		remainingTasks += stat.NTasks - stat.NDoneTasks
 		//time need to do remaining tasks
-		//remainingHours += stat.NHours - stat.NProgressHours - stat.NDoneHours
 		remainingHours += stat.NHours - stat.NDoneHours
-		linear_hours -= 8 * numberOfMembers
 		remainingTasksData = append(remainingTasksData, stat.Date.Format("02-01-2006"))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingTasks)))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingHours)))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(linear_hours))
+		linear_hours -= 8 * numberOfMembers
 		current = current.next
 	}
 	return remainingTasksData
@@ -200,8 +198,8 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		f.SetCellValue(memberStat.Name, "A3", "Expected")
 		f.SetCellValue(memberStat.Name, "A4", "Hours")
 		f.SetCellValue(memberStat.Name, "B1", "StartDay")
-		f.SetCellValue(memberStat.Name, "B2", strconv.Itoa(int(totalTask)))
-		f.SetCellValue(memberStat.Name, "B3", strconv.Itoa(int(totalTask)))
+		f.SetCellValue(memberStat.Name, "B2", int(totalTask))
+		f.SetCellValue(memberStat.Name, "B3", int(totalTask))
 		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
 		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task)
 		f.SetActiveSheet(index)
@@ -209,7 +207,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		countDay += 1
 		current = current.next
 	}
-	for currentReal != nil {			//pointer to check real time
+	for currentReal != nil { //pointer to check real time
 		stat := currentReal.stat
 		if stat == nil {
 			currentReal = currentReal.next
@@ -221,12 +219,12 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 			currentReal = currentReal.next
 			continue
 		}
-		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
 		numberOfTasksNeedDone = numberOfTasksNeedDone - memberStat.NDoneTasks
 		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
+		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
 		f.SetCellValue(memberStat.Name, string((j+2))+"1", date)
 		f.SetCellValue(memberStat.Name, string((j+2))+"2", numberOfTasksNeedDone)
-		
+
 		//set size of coloum
 		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)
 		if err_size_column != nil {
@@ -308,7 +306,7 @@ func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	for current != nil {
 		stat := current.stat
 		for _, infoAction := range stat.MemberActions {
-			infoAction.Time = utils.TimeLocal(infoAction.Time)				//reset value of infoAction.Time to local time
+			infoAction.Time = utils.TimeLocal(infoAction.Time) //reset value of infoAction.Time to local time
 			if utils.IsDateEqual(&infoAction.Time, &yesterday) {
 				memberActions = append(memberActions, infoAction)
 			}

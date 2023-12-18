@@ -82,8 +82,8 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 	f.SetCellValue(nameOfSheet, "A4", "Remaining Hours")
 	f.SetCellValue(nameOfSheet, "A5", "Hours")
 	f.SetCellValue(nameOfSheet, "B1", "StartDay")
-	f.SetCellValue(nameOfSheet, "B2", strconv.Itoa(totalTask))
-	f.SetCellValue(nameOfSheet, "B3", strconv.Itoa(totalTask))
+	f.SetCellValue(nameOfSheet, "B2", totalTask)
+	f.SetCellValue(nameOfSheet, "B3", totalTask)
 
 	for i := 0; i < len(dataDaily); i += 4 {
 		date := dataDaily[i]
@@ -93,13 +93,16 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		countDay += 1
 	}
 
-	for i := 0; i < numberOfDayToCurrentDay; i += 4 {
+	logger.Info("#: ", len(dataDaily))
+
+	for i := 0; i < numberOfDayToCurrentDay+4; i += 4 {
+		//for i := 0; i < len(dataDaily); i += 4 {
 		// date := dataDaily[i]
 		remainingTasks := dataDaily[i+1]
 		remainingHours := dataDaily[i+2]
 		remainingHoursLinear := dataDaily[i+3]
 		// f.SetCellValue(nameOfSheet, string((k+2))+"1", date)
-		f.SetCellValue(nameOfSheet, string((k+2))+"2", utils.ConvertStringToInt(remainingTasks)) //
+		f.SetCellValue(nameOfSheet, string((k+2))+"2", utils.ConvertStringToInt(remainingTasks))       //
 		f.SetCellValue(nameOfSheet, string((k+2))+"4", utils.ConvertStringToInt(remainingHours))       //
 		f.SetCellValue(nameOfSheet, string((k+2))+"5", utils.ConvertStringToInt(remainingHoursLinear)) //
 		k += 1
@@ -834,7 +837,7 @@ func SetMemberActionsSprint(memberActionDaily string, memberActions []*MemberAct
 	}
 }
 
-func DeleteSheet (nameOfSheet string) bool{
+func DeleteSheet(nameOfSheet string) {
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Error(err)
@@ -848,23 +851,7 @@ func DeleteSheet (nameOfSheet string) bool{
 	errDeleteSheet := f.DeleteSheet(nameOfSheet)
 	if errDeleteSheet != nil {
 		logger.Errorln(errDeleteSheet)
-		return false
 	}
-	return true
-}
-
-func SaveFile () {
-	f, err := excelize.OpenFile(utils.NameOfFile)
-	if err != nil {
-		logger.Error(err)
-	}
-	defer func() {
-		// Close the spreadsheet.
-		if err := f.Close(); err != nil {
-			logger.Error(err)
-		}
-	}()
-
 	// f.SetActiveSheet(index)
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		logger.Error(err)
