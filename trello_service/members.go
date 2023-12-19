@@ -116,3 +116,13 @@ func ConvertNameOfMembersInLinkedList(memberStat *MemberStats) {
 		}	
 	}
 }
+
+func ConvertNameOfMember(nameNeedConvert string) string {
+	var result string
+	for nameMemberInEmail, nameMemberInCompany := range nameOfMembers {
+		if nameMemberInEmail == nameNeedConvert {
+			result = nameMemberInCompany
+		}	
+	}
+	return result
+}

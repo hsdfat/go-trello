@@ -5,7 +5,6 @@ import (
 	"go-trello/logger"
 	"go-trello/utils"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/adlio/trello"
@@ -74,6 +73,7 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	// }
 	cards, err, number := instance.GetCardsInBoard(id)
 	logger.Info("@#: ", number)
+
 	tasks, err := instance.FilterTasks(cards)
 	if err != nil {
 		logger.Error(err)
@@ -269,19 +269,15 @@ func SortMembersActionsDailyUseTime(memberActions []*MemberActions) {
 	}
 }
 
-func GetValueToGroup(group *Group, memberAction *MemberActions) {
-	group.Time = memberAction.Time
-	group.Name = memberAction.TypeOfTask // ex: Tool hieu nang
-	if strings.Contains(memberAction.ListAfter, "Done") {
-		group.DoneTask = memberAction.ListAfter //ex: status of task
+func GetStatusOfTaskInGroupSheet(tasks *Task) string {
+	if tasks == nil {
+		logger.Error("Nil task")
 	}
-	if memberAction.ListAfter == "Design" || memberAction.ListAfter == "To Do" || memberAction.ListAfter == "Doing" || memberAction.ListAfter == "Code Review" || memberAction.ListAfter == "Testing" {
-		group.ProgressTask = memberAction.ListAfter
-	}
-	if memberAction.ListAfter == "Sprint Backlog" {
-		group.SprintBacklogTask = memberAction.ListAfter
-	}
-	if memberAction.ListAfter == "Pending" || memberAction.ListAfter == "pending" {
-		group.SprintBacklogTask = memberAction.ListAfter
+	if tasks.IsDone{
+		return "Done"
+	} else if tasks.IsInProgress {
+		return "Inprogress"
+	} else {
+		return "Sprint Backlog or Pending"
 	}
 }

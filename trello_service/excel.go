@@ -95,13 +95,13 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 
 	logger.Info("#: ", len(dataDaily))
 
-	for i := 0; i < numberOfDayToCurrentDay+4; i += 4 {
+	for i := 0; i < numberOfDayToCurrentDay*4; i += 4 {
 		//for i := 0; i < len(dataDaily); i += 4 {
 		// date := dataDaily[i]
+		logger.Info("number of day to current day: ", numberOfDayToCurrentDay)
 		remainingTasks := dataDaily[i+1]
 		remainingHours := dataDaily[i+2]
 		remainingHoursLinear := dataDaily[i+3]
-		// f.SetCellValue(nameOfSheet, string((k+2))+"1", date)
 		f.SetCellValue(nameOfSheet, string((k+2))+"2", utils.ConvertStringToInt(remainingTasks))       //
 		f.SetCellValue(nameOfSheet, string((k+2))+"4", utils.ConvertStringToInt(remainingHours))       //
 		f.SetCellValue(nameOfSheet, string((k+2))+"5", utils.ConvertStringToInt(remainingHoursLinear)) //
@@ -856,21 +856,21 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 	}
 	f.SetCellValue(nameOfSheet, "A1", "Type of task")
 	f.SetCellValue(nameOfSheet, "B1", "Card name")
-	// f.SetCellValue(nameOfSheet, "C1", "Content")
-	// f.SetCellValue(nameOfSheet, "D1", "Name of member")
+	f.SetCellValue(nameOfSheet, "C1", "Status")
+	f.SetCellValue(nameOfSheet, "D1", "Owner")
 	row := 2
 	for _, task := range tasks {
 		logger.Info("************************")
-		//logger.Info("memberAction.Time: ", task.Time)
-		logger.Info("task.Name of member: ", task.TypeOfTask)
-		logger.Info("task.NameOfMember: ", task.Card.Name)
-		logger.Info("memberAction.Current Status: ", task.)
-		//logger.Info("memberAction.ContentOfTask: ", task.ContentOfTask)
+		statusOfTask := GetStatusOfTaskInGroupSheet(task)
+		logger.Info("Kind of task: ", task.TypeOfTask)
+		logger.Info("Name of member: ", task.Card.Name)
+		logger.Info("memberAction.Current Status: ", statusOfTask)
+		logger.Info("member ", ConvertNameOfMember(task.Members.Username))
 		
 		f.SetCellValue(nameOfSheet, "A"+strconv.Itoa(row), task.TypeOfTask)
 		f.SetCellValue(nameOfSheet, "B"+strconv.Itoa(row), task.Card.Name)
-		// f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), task.NameOfMember)
-		// f.SetCellValue(nameOfSheet, "C"+strconv.Itoa(row), task.ListAfter)
+		f.SetCellValue(nameOfSheet, "C"+strconv.Itoa(row), statusOfTask)
+		f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), ConvertNameOfMember(task.Members.Username))
 		// f.SetCellValue(nameOfSheet, "E"+strconv.Itoa(row), task.ContentOfTask)
 		row += 1
 	}

@@ -55,7 +55,7 @@ func main() {
 	trello_service.DrawDailyLineChart(utils.MemberActionDaily)       //draw line chart in sheet daily
 	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily) //draw column chart in Daily
 	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()         //export data of tracking action in Daily
-	ins.DailyTrackingStats.ExportGroupActionsSprintToExcel(ins.Tasks) //export data of tracking action in
+	ins.DailyTrackingStats.ExportGroupActionsSprintToExcel(ins.Tasks) //export data of tracking action in Group sheet
 	trello_service.ExportDataOfMembersToExcel(ins)                   //Sheet: Data each member of team
 	trello_service.DeleteSheet("Sheet1")
 	//trello_service.SaveFile()

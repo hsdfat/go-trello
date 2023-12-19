@@ -107,7 +107,8 @@ type Task struct {
 	IsExtra      bool
 	Hour         int32
 	TypeOfTask   string
-	Members      []*trello.Member
+	//Members      []*trello.Member
+	Members      *trello.Member
 }
 
 // CardProgress represents the progress of a card.

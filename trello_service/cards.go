@@ -43,6 +43,12 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 		ok, hour, isExtraTask, typeOfTask := ValidateTaskName(card.Name)
 		// logger.Debug("ok: ", ok)
 		// logger.Debug("hour: ", hour)
+		memberMap := c.Members
+		var idMember string
+		for _, idMembers := range card.IDMembers {
+			idMember = idMembers
+		}
+		member := memberMap[idMember]
 		if ok {
 			task := &Task{
 				Card:         card,
@@ -50,7 +56,8 @@ func (c *TrelloClient) FilterTasks(cards []*trello.Card) (tasks []*Task, err err
 				IsDone:       card.IDList == c.DoneList,
 				IsInProgress: c.CheckTaskInProgress(card),
 				IsExtra:      isExtraTask,
-				TypeOfTask: typeOfTask, 		// ex: Test hieu nang
+				TypeOfTask:   typeOfTask, 		// ex: Test hieu nang
+				Members:      member,
 			}
 			// logger.Debug("is Extra Tast: ", isExtraTask)
 			creationTime, err := GetCreationTime(card.ID)

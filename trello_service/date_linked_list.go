@@ -127,17 +127,16 @@ func (list *DateLinkedList) CountDaysInSprint() int {
 
 func (list *DateLinkedList) CountNumberToCurrentDay(starDayOfSprintInVn time.Time) int {
 	count := 1
-	var tomorrowStartDay time.Time
 	temp := list.head
-	tomorrowStartDay = temp.stat.Date
-	logger.Info("temp: ", tomorrowStartDay)
+	var afterStartDay time.Time = starDayOfSprintInVn
 	currentTimeInVn := utils.TimeLocal(time.Now())
 	for temp != nil {
-		if !utils.IsDateEqual(&tomorrowStartDay, &currentTimeInVn) {
-			tomorrowStartDay = starDayOfSprintInVn.AddDate(0, 0, 1)
-			logger.Info("temp2: ", tomorrowStartDay)
+		afterStartDay = afterStartDay.AddDate(0, 0, 1)
+		if afterStartDay.Weekday() == 6 || afterStartDay.Weekday() == 7 {
+			continue
 		}
-		if utils.IsDateEqual(&currentTimeInVn, &currentTimeInVn) {
+		if utils.IsDateEqual(&afterStartDay, &currentTimeInVn) {
+			logger.Info("count:", count)
 			return count
 		}
 		count += 1
@@ -149,7 +148,7 @@ func (list *DateLinkedList) CountNumberToCurrentDay(starDayOfSprintInVn time.Tim
 func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask int32, numberOfSprint int, totalHours int32, numberOfDayToCurrentDay int) {
 	numberOfTasksNeedDone := totalTask
 	numberOfRemainingHours := totalHours
-	number := 0 // number to check with numberOfDaysToCurrentDay
+	number := 1 // number to check with numberOfDaysToCurrentDay
 
 	//export to excel
 	f, err := excelize.OpenFile(utils.NameOfFile)
@@ -197,6 +196,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		f.SetCellValue(memberStat.Name, "A2", "Tasks")
 		f.SetCellValue(memberStat.Name, "A3", "Expected")
 		f.SetCellValue(memberStat.Name, "A4", "Hours")
+		f.SetCellValue(memberStat.Name, "A5", "Expected Hours")
 		f.SetCellValue(memberStat.Name, "B1", "StartDay")
 		f.SetCellValue(memberStat.Name, "B2", int(totalTask))
 		f.SetCellValue(memberStat.Name, "B3", int(totalTask))
@@ -365,7 +365,7 @@ func (list *DateLinkedList) ExportGroupActionsSprintToExcel(tasks []*Task) {
 	// 	logger.Info("Not actions in this sprint: ", time.Now())
 	// }
 	SortTasksUseTypeOfTask(tasks)
-	SortTasksUseCardName(tasks)
+	//SortTasksUseCardName(tasks)
 	SetGroupActionsSprint(utils.Group, tasks)
 }
 
