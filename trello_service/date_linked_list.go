@@ -9,6 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	//"github.com/spf13/viper"
 	"github.com/xuri/excelize/v2"
 
 	"github.com/adlio/trello"
@@ -121,6 +122,27 @@ func (list *DateLinkedList) CountDaysInSprint() int {
 	for temp != nil {
 		temp = temp.next
 		count += 1
+	}
+	return count
+}
+
+func (list *DateLinkedList) CountNumberToCurrentDayNew(starDayOfSprintInVn time.Time) int {
+	count := 1
+	temp := list.head
+	var afterStartDay2 time.Time = starDayOfSprintInVn
+	currentTimeInVn := utils.TimeLocal(time.Now())
+	for temp != nil {
+		afterStartDay2 = temp.stat.Date
+		//afterStartDay = afterStartDay.AddDate(0, 0, 1)
+		if afterStartDay2.Weekday() == 6 || afterStartDay2.Weekday() == 7 {
+			continue
+		}
+		if utils.IsDateEqual(&afterStartDay2, &currentTimeInVn) {
+			logger.Info("count:", count)
+			return count
+		}
+		count += 1
+		temp = temp.next
 	}
 	return count
 }
@@ -298,6 +320,7 @@ func (list *DateLinkedList) PrintMemberActions() {
 func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	var memberActions []*MemberActions
 	today := utils.TimeLocal(time.Now())
+
 	yesterday := today.AddDate(0, 0, -1)
 
 	weekday := utils.TimeLocal(time.Now()).Weekday()
@@ -373,6 +396,20 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 	defer wg.Done()
 
 	ins := GetInstance()
+
+	//add skip date list
+	
+	//skipDate := viper.GetStringSlice("trello.skipDays")
+	// for i := 0; i < len(skipDate); i++ {
+	// 	skipDateTime, err := time.Parse("02-01-2006", skipDate[i])
+	// 	if err != nil {
+	// 		logger.Error("Cannot parse start day: ", err)
+	// 	}
+	// 	//skipDateTimeVn := utils.TimeLocal(skipDateTime)
+	// 	skipDateTimeVn := skipDateTime
+	// 	logger.Info("skipDateTimeVn: ", skipDateTimeVn)
+	// }
+
 	if list.head == nil {
 		logger.Debugln("List is empty")
 		return
@@ -381,6 +418,9 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 	for current != nil {
 		stat := current.stat
 		if endOfDay(stat.Date).After(action.Date) {
+			logger.Info("action.Date need check: ", utils.TimeLocal(action.Date))
+			// if action.Data != nil && slices.Contains(skipDate, utils.TimeLocal(action.Date).String()) {
+			//if action.Data != nil && !utils.InSkipDays(skipDate, utils.TimeLocal(action.Date)) {
 			if action.Data != nil {
 				var taskDone, taskUndone, taskInProgress, taskNotInProgress bool
 
@@ -391,6 +431,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						atomic.AddInt32(&stat.NDoneHours, task.Hour)
 					}
 				}
+				logger.Info("Action Date: ", action.Date)
 				if action.Data.ListAfter != nil {
 					if action.Data.ListAfter.ID == ins.DoneList {
 						taskDone = true

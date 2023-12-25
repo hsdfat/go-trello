@@ -182,7 +182,7 @@ func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 		logger.Error("Cannot parse start day: ", err)
 	}
 	startDayOfSprintInVn := utils.TimeLocal(startDayOfSprint)
-	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDay(startDayOfSprintInVn) // number of days from start day to current day
+	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDayNew(startDayOfSprintInVn) // number of days from start day to current day
 
 	for memberId, _ := range memberData.Members {
 		totalTasks := memberData.MemberStats[memberId].NTasks
@@ -206,7 +206,8 @@ func ExportDataOfDailyToExcel(memberData *TrelloClient) {
 		logger.Error("Cannot parse start day: ", err)
 	}
 	startDayOfSprintInVn := utils.TimeLocal(startDayOfSprint)
-	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDay(startDayOfSprintInVn) // number of days from start day to current day
+	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDayNew(startDayOfSprintInVn) // number of days from start day to current day
+	logger.Info("CountNumberToCurrentDay2: ", memberData.DailyTrackingStats.CountNumberToCurrentDayNew(startDayOfSprintInVn))
 	logger.Info("Number of: ", numberOfDayToCurrentDay)
 	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList(numberOfMembers, initTotalTime)
 	//SetCellValue return values of excel
@@ -273,7 +274,7 @@ func GetStatusOfTaskInGroupSheet(tasks *Task) string {
 	if tasks == nil {
 		logger.Error("Nil task")
 	}
-	if tasks.IsDone{
+	if tasks.IsDone {
 		return "Done"
 	} else if tasks.IsInProgress {
 		return "Inprogress"

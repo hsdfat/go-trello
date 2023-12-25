@@ -763,16 +763,16 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 			logger.Error(err)
 		}
 	}()
-	columnSizeErr := f.SetColWidth(memberActionDaily, "N", "S", 15)
+	columnSizeErr := f.SetColWidth(memberActionDaily, "O", "T", 15)
 	if columnSizeErr != nil {
 		logger.Error(columnSizeErr)
 	}
-	f.SetCellValue(memberActionDaily, "N10", "Time")
-	f.SetCellValue(memberActionDaily, "O10", "List Before")
-	f.SetCellValue(memberActionDaily, "P10", "List After")
-	f.SetCellValue(memberActionDaily, "Q10", "Name")
-	f.SetCellValue(memberActionDaily, "R10", "Task")
-	f.SetCellValue(memberActionDaily, "S10", "Action Types")
+	f.SetCellValue(memberActionDaily, "O10", "Time")
+	f.SetCellValue(memberActionDaily, "P10", "List Before")
+	f.SetCellValue(memberActionDaily, "Q10", "List After")
+	f.SetCellValue(memberActionDaily, "R10", "Name")
+	f.SetCellValue(memberActionDaily, "S10", "Task")
+	f.SetCellValue(memberActionDaily, "T10", "Action Types")
 	row := 11
 	for _, memberAction := range memberActions {
 		// logger.Info("**************************************************")
@@ -782,12 +782,12 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 		// logger.Info(memberAction.NameOfMember)
 		// logger.Info(memberAction.ContentOfTask)
 		// logger.Info(memberAction.ActionTypes)
-		f.SetCellValue(memberActionDaily, "N"+strconv.Itoa(row), memberAction.Time)
-		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.ListBefore)
-		f.SetCellValue(memberActionDaily, "P"+strconv.Itoa(row), memberAction.ListAfter)
-		f.SetCellValue(memberActionDaily, "Q"+strconv.Itoa(row), memberAction.NameOfMember)
-		f.SetCellValue(memberActionDaily, "R"+strconv.Itoa(row), memberAction.ContentOfTask)
-		f.SetCellValue(memberActionDaily, "S"+strconv.Itoa(row), memberAction.ActionTypes)
+		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.Time)
+		f.SetCellValue(memberActionDaily, "P"+strconv.Itoa(row), memberAction.ListBefore)
+		f.SetCellValue(memberActionDaily, "Q"+strconv.Itoa(row), memberAction.ListAfter)
+		f.SetCellValue(memberActionDaily, "R"+strconv.Itoa(row), memberAction.NameOfMember)
+		f.SetCellValue(memberActionDaily, "S"+strconv.Itoa(row), memberAction.ContentOfTask)
+		f.SetCellValue(memberActionDaily, "T"+strconv.Itoa(row), memberAction.ActionTypes)
 		row += 1
 	}
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
@@ -860,12 +860,12 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 	f.SetCellValue(nameOfSheet, "D1", "Owner")
 	row := 2
 	for _, task := range tasks {
-		logger.Info("************************")
+		// logger.Info("************************")
 		statusOfTask := GetStatusOfTaskInGroupSheet(task)
-		logger.Info("Kind of task: ", task.TypeOfTask)
-		logger.Info("Name of member: ", task.Card.Name)
-		logger.Info("memberAction.Current Status: ", statusOfTask)
-		logger.Info("member ", ConvertNameOfMember(task.Members.Username))
+		// logger.Info("Kind of task: ", task.TypeOfTask)
+		// logger.Info("Name of member: ", task.Card.Name)
+		// logger.Info("memberAction.Current Status: ", statusOfTask)
+		// logger.Info("member ", ConvertNameOfMember(task.Members.Username))
 		
 		f.SetCellValue(nameOfSheet, "A"+strconv.Itoa(row), task.TypeOfTask)
 		f.SetCellValue(nameOfSheet, "B"+strconv.Itoa(row), task.Card.Name)

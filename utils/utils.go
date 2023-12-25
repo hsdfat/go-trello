@@ -49,3 +49,19 @@ func TimeLocal(timeLocal time.Time) time.Time {
     }
     return timeLocal.In(loc)
 }
+
+//InSkipDays returns true if dataNeedCheck is in skipDays
+func InSkipDays(skipDate []string, dateNeedCheck time.Time) bool {
+	for i := 0 ; i < len(skipDate); i++ {
+		//convert to date type
+		skipDateType, err := time.Parse("02-01-2006",skipDate[i])
+		logger.Info("skip date type: ", skipDateType)
+		if err != nil {
+			logger.Error(err)		
+		}
+		if IsDateEqual(&skipDateType, &dateNeedCheck) {
+			return true
+		}
+	}
+	return false
+}

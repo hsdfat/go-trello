@@ -3,9 +3,12 @@ package trello_service
 import (
 	"fmt"
 	"go-trello/logger"
+	"go-trello/utils"
 	"strconv"
 	"sync"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 // GetCreationTime gets the creation time of card/action's id
@@ -48,12 +51,17 @@ func (c *TrelloClient) SetSprintDuration(start, end time.Time) error {
 	date := start
 	var dateBefore time.Time
 	var dateStat *DailyTrackingStats
-	logger.Debugln("Init Statitics Tracking Day", end.Add(23*time.Hour+3590*time.Second).After(date))
+	logger.Info("Init Statitics Tracking Day", end.Add(23*time.Hour+3590*time.Second).After(date))
+	
+	skipDate := viper.GetStringSlice("trello.skipDays")
+	logger.Info("date: ", date)
+	
 	for end.Add(23*time.Hour + 3590*time.Second).After(date) {
-		if date.Weekday() == time.Sunday || date.Weekday() == time.Saturday {
+		if date.Weekday() == time.Sunday || date.Weekday() == time.Saturday || utils.InSkipDays(skipDate, date) {
 			date = date.Add(24 * time.Hour)
 			continue
 		}
+
 		dateStat = &DailyTrackingStats{
 			Date:        date,
 			DateBefore:  dateBefore,
