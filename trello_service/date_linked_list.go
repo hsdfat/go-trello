@@ -217,18 +217,19 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		f.SetCellValue(memberStat.Name, "A1", "Date")
 		f.SetCellValue(memberStat.Name, "A2", "Tasks")
 		f.SetCellValue(memberStat.Name, "A3", "Expected")
-		f.SetCellValue(memberStat.Name, "A4", "Hours")
-		f.SetCellValue(memberStat.Name, "A5", "Expected Hours")
+		f.SetCellValue(memberStat.Name, "A4", "Remaining Hours")
+		f.SetCellValue(memberStat.Name, "A5", "Hours")
 		f.SetCellValue(memberStat.Name, "B1", "StartDay")
 		f.SetCellValue(memberStat.Name, "B2", int(totalTask))
 		f.SetCellValue(memberStat.Name, "B3", int(totalTask))
 		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
-		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task)
+		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task)			//Expected task row
 		f.SetActiveSheet(index)
 		i += 1
 		countDay += 1
 		current = current.next
 	}
+
 	for currentReal != nil { //pointer to check real time
 		stat := currentReal.stat
 		if stat == nil {
@@ -236,6 +237,10 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 			continue
 		}
 		memberStat, ok := stat.MemberStats[id]
+		remainingHourLinear := utils.FindHourOfEachMember(memberStat.Name)
+		logger.Info("2member stat.Name:", memberStat.Name)
+		logger.Info("remainingHourLinear", remainingHourLinear)
+		remainingHourLinear = remainingHourLinear - 8 * (number-1) 
 
 		if !ok {
 			currentReal = currentReal.next
@@ -244,8 +249,11 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		numberOfTasksNeedDone = numberOfTasksNeedDone - memberStat.NDoneTasks
 		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
 		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
-		f.SetCellValue(memberStat.Name, string((j+2))+"1", date)
-		f.SetCellValue(memberStat.Name, string((j+2))+"2", numberOfTasksNeedDone)
+		f.SetCellValue(memberStat.Name, string((j+2))+"1", date)					//date
+		f.SetCellValue(memberStat.Name, string((j+2))+"2", numberOfTasksNeedDone)	//remaining tasks
+		f.SetCellValue(memberStat.Name, string((j+2))+"4", numberOfRemainingHours)
+		f.SetCellValue(memberStat.Name, string((j+2))+"5", remainingHourLinear)
+		//remainingHourLinear -= 8
 
 		//set size of coloum
 		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)

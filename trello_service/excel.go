@@ -102,9 +102,13 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		remainingTasks := dataDaily[i+1]
 		remainingHours := dataDaily[i+2]
 		remainingHoursLinear := dataDaily[i+3]
+		remainingHoursLinearInt := utils.ConvertStringToInt(remainingHoursLinear)
+		if remainingHoursLinearInt < 0{
+			remainingHoursLinearInt = 0
+		}
 		f.SetCellValue(nameOfSheet, string((k+2))+"2", utils.ConvertStringToInt(remainingTasks))       //
 		f.SetCellValue(nameOfSheet, string((k+2))+"4", utils.ConvertStringToInt(remainingHours))       //
-		f.SetCellValue(nameOfSheet, string((k+2))+"5", utils.ConvertStringToInt(remainingHoursLinear)) //
+		f.SetCellValue(nameOfSheet, string((k+2))+"5", remainingHoursLinearInt) //
 		k += 1
 		countDayDaily += 1
 	}

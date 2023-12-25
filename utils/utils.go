@@ -5,6 +5,8 @@ import (
 	"math"
 	"strconv"
 	"time"
+
+	"github.com/spf13/viper"
 )
 
 // name sheet
@@ -64,4 +66,32 @@ func InSkipDays(skipDate []string, dateNeedCheck time.Time) bool {
 		}
 	}
 	return false
+}
+
+func FindHourOfEachMember(name string) int {
+	var initLinearTime int
+	if name == "dongnt18" {
+		initLinearTime = viper.GetInt("smfHourMembers.dongnt18")
+	} else if name == "minhdk" {
+		initLinearTime = viper.GetInt("smfHourMembers.minhdk")
+	}  else if name == "binhtd7" {
+		initLinearTime = viper.GetInt("smfHourMembers.binhtd7")
+	}  else if name == "tuanna137" {
+		initLinearTime = viper.GetInt("smfHourMembers.tuanna137")
+	}  else if name == "namnp16" {
+		initLinearTime = viper.GetInt("smfHourMembers.namnp16")
+	}  else if name == "hungtq40" {
+		initLinearTime = viper.GetInt("smfHourMembers.hungtq40")
+	}  else if name == "phatlc" {
+		initLinearTime = viper.GetInt("smfHourMembers.phatlc")
+	}  else if name == "trinhmn" {
+		initLinearTime = viper.GetInt("smfHourMembers.trinhmn")
+	}  else if name == "thinhnx5" {
+		initLinearTime = viper.GetInt("smfHourMembers.thinhnx5")
+	}  else if name == "hieund152" {
+		initLinearTime = viper.GetInt("smfHourMembers.hieund152")
+	}  else if name == "bachtx" {
+		initLinearTime = viper.GetInt("smfHourMembers.bachtx")
+	} 
+	return initLinearTime
 }

@@ -17,7 +17,7 @@ var nameOfMembers = map[string]string{
 	"namnguyen08489158":"namnp16",
 	"thinhnx5": "thinhnx5",
 	"xuanbachtrng": "bachtx",
-	"hungto18":"hungto18",
+	"hungto18":"hungtq40",
 	"maingoctrinh":"trinhmn",
 }
 
