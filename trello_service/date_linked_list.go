@@ -10,6 +10,7 @@ import (
 	"time"
 
 	//"github.com/spf13/viper"
+	"github.com/spf13/viper"
 	"github.com/xuri/excelize/v2"
 
 	"github.com/adlio/trello"
@@ -238,8 +239,6 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		}
 		memberStat, ok := stat.MemberStats[id]
 		remainingHourLinear := utils.FindHourOfEachMember(memberStat.Name)
-		logger.Info("2member stat.Name:", memberStat.Name)
-		logger.Info("remainingHourLinear", remainingHourLinear)
 		remainingHourLinear = remainingHourLinear - 8 * (number-1) 
 
 		if !ok {
@@ -332,8 +331,15 @@ func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	yesterday := today.AddDate(0, 0, -1)
 
 	weekday := utils.TimeLocal(time.Now()).Weekday()
+	// if is Monday
 	if weekday == 1 {
 		yesterday = today.AddDate(0, 0, -3)
+	}
+
+	// if yesterday is skipdate
+	skipDate := viper.GetStringSlice("trello.skipDays")
+	for utils.InSkipDays(skipDate, yesterday) {
+		yesterday = yesterday.AddDate(0, 0, -1)
 	}
 
 	if list.head == nil {
