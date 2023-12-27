@@ -50,13 +50,13 @@ func main() {
 	trello_service.ConvertNameOfMembers(ins)
 	trello_service.ExportTotalMemberToCsv(ins)
 	trello_service.DrawPieChartSMF(utils.NameSMFTeam)
-	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()        //export data of tracking action in SMF
-	trello_service.ExportDataOfDailyToExcel(ins)                     //Data of Sheet Daily
-	trello_service.DrawDailyLineChart(utils.MemberActionDaily)       //draw line chart in sheet daily
-	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily) //draw column chart in Daily
-	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()         //export data of tracking action in Daily
+	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()         //export data of tracking action in SMF
+	trello_service.ExportDataOfDailyToExcel(ins)                      //data of Sheet Daily
+	trello_service.DrawDailyLineChart(utils.MemberActionDaily)        //draw line chart in sheet daily
+	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily)  //draw column chart in Daily
+	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()          //export data of tracking action in Daily
 	ins.DailyTrackingStats.ExportGroupActionsSprintToExcel(ins.Tasks) //export data of tracking action in Group sheet
-	trello_service.ExportDataOfMembersToExcel(ins)                   //Sheet: Data each member of team
+	trello_service.ExportDataOfMembersToExcel(ins)                    //Sheet: Data each member of team
 	trello_service.DeleteSheet("Sheet1")
 	//trello_service.SaveFile()
 }

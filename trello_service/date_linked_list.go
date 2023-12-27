@@ -209,7 +209,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 			current = current.next
 			continue
 		}
-		// Create a new sheet.
+		// Convert Name of Members to Company name
 		ConvertNameOfMembersInLinkedList(memberStat)
 		index, err := f.NewSheet(memberStat.Name)
 		if err != nil {
@@ -224,7 +224,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		f.SetCellValue(memberStat.Name, "B2", int(totalTask))
 		f.SetCellValue(memberStat.Name, "B3", int(totalTask))
 		expected_task := utils.RoundFloat(utils.GetYValue(-float64(totalTask)/float64(numberOfSprint), countDay, totalTask), 2)
-		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task)			//Expected task row
+		f.SetCellValue(memberStat.Name, string((i+2))+"3", expected_task) //Expected task row
 		f.SetActiveSheet(index)
 		i += 1
 		countDay += 1
@@ -238,8 +238,9 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 			continue
 		}
 		memberStat, ok := stat.MemberStats[id]
+		//Get hour of each member
 		remainingHourLinear := utils.FindHourOfEachMember(memberStat.Name)
-		remainingHourLinear = remainingHourLinear - 8 * (number-1) 
+		remainingHourLinear = remainingHourLinear - 8*(number-1)
 
 		if !ok {
 			currentReal = currentReal.next
@@ -248,8 +249,8 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		numberOfTasksNeedDone = numberOfTasksNeedDone - memberStat.NDoneTasks
 		numberOfRemainingHours = numberOfRemainingHours - memberStat.NDoneHours
 		date := fmt.Sprintf("%s", stat.Date.Format("02-01-2006"))
-		f.SetCellValue(memberStat.Name, string((j+2))+"1", date)					//date
-		f.SetCellValue(memberStat.Name, string((j+2))+"2", numberOfTasksNeedDone)	//remaining tasks
+		f.SetCellValue(memberStat.Name, string((j+2))+"1", date)                  //date
+		f.SetCellValue(memberStat.Name, string((j+2))+"2", numberOfTasksNeedDone) //remaining tasks
 		f.SetCellValue(memberStat.Name, string((j+2))+"4", numberOfRemainingHours)
 		f.SetCellValue(memberStat.Name, string((j+2))+"5", remainingHourLinear)
 		//remainingHourLinear -= 8
@@ -412,7 +413,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 	ins := GetInstance()
 
 	//add skip date list
-	
+
 	//skipDate := viper.GetStringSlice("trello.skipDays")
 	// for i := 0; i < len(skipDate); i++ {
 	// 	skipDateTime, err := time.Parse("02-01-2006", skipDate[i])

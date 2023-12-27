@@ -61,7 +61,7 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		logger.Error(err)
 	}
 	//set size of coloum
-	err_size_column := f.SetColWidth(nameOfSheet, "A", "L", 15)
+	err_size_column := f.SetColWidth(nameOfSheet, "A", "M", 15)
 	if err_size_column != nil {
 		fmt.Println(err_size_column)
 	}
@@ -103,12 +103,12 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		remainingHours := dataDaily[i+2]
 		remainingHoursLinear := dataDaily[i+3]
 		remainingHoursLinearInt := utils.ConvertStringToInt(remainingHoursLinear)
-		if remainingHoursLinearInt < 0{
+		if remainingHoursLinearInt < 0 {
 			remainingHoursLinearInt = 0
 		}
-		f.SetCellValue(nameOfSheet, string((k+2))+"2", utils.ConvertStringToInt(remainingTasks))       //
-		f.SetCellValue(nameOfSheet, string((k+2))+"4", utils.ConvertStringToInt(remainingHours))       //
-		f.SetCellValue(nameOfSheet, string((k+2))+"5", remainingHoursLinearInt) //
+		f.SetCellValue(nameOfSheet, string((k+2))+"2", utils.ConvertStringToInt(remainingTasks)) //
+		f.SetCellValue(nameOfSheet, string((k+2))+"4", utils.ConvertStringToInt(remainingHours)) //
+		f.SetCellValue(nameOfSheet, string((k+2))+"5", remainingHoursLinearInt)                  //
 		k += 1
 		countDayDaily += 1
 	}
@@ -767,7 +767,7 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 			logger.Error(err)
 		}
 	}()
-	columnSizeErr := f.SetColWidth(memberActionDaily, "O", "T", 15)
+	columnSizeErr := f.SetColWidth(memberActionDaily, "O", "T", 25)
 	if columnSizeErr != nil {
 		logger.Error(columnSizeErr)
 	}
@@ -775,6 +775,10 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 	f.SetCellValue(memberActionDaily, "P10", "List Before")
 	f.SetCellValue(memberActionDaily, "Q10", "List After")
 	f.SetCellValue(memberActionDaily, "R10", "Name")
+	taskColumnSizeErr := f.SetColWidth(memberActionDaily, "S", "S", 85)
+	if taskColumnSizeErr != nil {
+		logger.Error(taskColumnSizeErr)
+	}
 	f.SetCellValue(memberActionDaily, "S10", "Task")
 	f.SetCellValue(memberActionDaily, "T10", "Action Types")
 	row := 11
@@ -809,27 +813,30 @@ func SetMemberActionsSprint(nameOfSheet string, memberActions []*MemberActions) 
 			logger.Error(err)
 		}
 	}()
-	columnSizeErr := f.SetColWidth(nameOfSheet, "J", "O", 15)
-	if columnSizeErr != nil {
-		logger.Error(columnSizeErr)
+	//columnSizeErr := f.SetColWidth(nameOfSheet, "J", "O", 15)
+	//if columnSizeErr != nil {
+	//	logger.Error(columnSizeErr)
+	//}
+
+	columnSizeTimeToNameErr := f.SetColWidth(nameOfSheet, "K", "P", 25)
+	if columnSizeTimeToNameErr != nil {
+		logger.Error(columnSizeTimeToNameErr)
 	}
 	f.SetCellValue(nameOfSheet, "K1", "Time")
 	f.SetCellValue(nameOfSheet, "L1", "List Before")
 	f.SetCellValue(nameOfSheet, "M1", "List After")
 	f.SetCellValue(nameOfSheet, "N1", "Name")
+	columnSizeTaskErr := f.SetColWidth(nameOfSheet, "O", "O", 85)
+	if columnSizeTaskErr != nil {
+		logger.Error(columnSizeTaskErr)
+	}
 	f.SetCellValue(nameOfSheet, "O1", "Task")
 	f.SetCellValue(nameOfSheet, "P1", "Action Types")
 	row := 2
 	for _, memberAction := range memberActions {
 		// logger.Info("--------------------------------")
-		// logger.Info("memberAction.Time: ", memberAction.Time)
-		// logger.Info("memberAction.ListBefore: ", memberAction.ListBefore)
-		// logger.Info("memberAction.ListAfter: ", memberAction.ListAfter)
-		// logger.Info("memberAction.NameOfMember: ", memberAction.NameOfMember)
-		// logger.Info("memberAction.ContentOfTask: ", memberAction.ContentOfTask)
-		// logger.Info("memberAction.ActionTypes: ", memberAction.ActionTypes)
 		// logger.Info("memberAction.TypeOfTask: ", memberAction.TypeOfTask)
-		
+
 		f.SetCellValue(nameOfSheet, "K"+strconv.Itoa(row), memberAction.Time)
 		f.SetCellValue(nameOfSheet, "L"+strconv.Itoa(row), memberAction.ListBefore)
 		f.SetCellValue(nameOfSheet, "M"+strconv.Itoa(row), memberAction.ListAfter)
@@ -880,18 +887,58 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 
 	row := 2
 	for _, task := range tasks {
-		// logger.Info("************************")
 		statusOfTask := GetStatusOfTaskInGroupSheet(task)
-		// logger.Info("Kind of task: ", task.TypeOfTask)
-		// logger.Info("Name of member: ", task.Card.Name)
-		// logger.Info("memberAction.Current Status: ", statusOfTask)
-		// logger.Info("member ", ConvertNameOfMember(task.Members.Username))
-		
+		// set color for Done tasks
+		if statusOfTask == "Done" {
+			doneTaskFormat, err := f.NewConditionalStyle(
+				&excelize.Style{
+					Fill: excelize.Fill{
+						Type: "pattern", Color: []string{"C7EECF"}, Pattern: 1,
+					},
+				},
+			)
+			if err != nil {
+				logger.Error(err)
+			}
+			err = f.SetConditionalFormat(nameOfSheet, "A"+strconv.Itoa(row)+":"+"D"+strconv.Itoa(row),
+				[]excelize.ConditionalFormatOptions{
+					{
+						Type:     "cell",
+						Criteria: ">",
+						Format:   doneTaskFormat,
+						Value:    "6",
+					},
+				},
+			)
+		}
+
+		if statusOfTask == "Inprogress" {
+			inProgressTaskFormat, err := f.NewConditionalStyle(
+				&excelize.Style{
+					Fill: excelize.Fill{
+						Type: "pattern", Color: []string{"FFFF2B"}, Pattern: 1,
+					},
+				},
+			)
+			if err != nil {
+				logger.Error(err)
+			}
+			err = f.SetConditionalFormat(nameOfSheet, "A"+strconv.Itoa(row)+":"+"D"+strconv.Itoa(row),
+				[]excelize.ConditionalFormatOptions{
+					{
+						Type:     "cell",
+						Criteria: ">",
+						Format:   inProgressTaskFormat,
+						Value:    "6",
+					},
+				},
+			)
+		}
+
 		f.SetCellValue(nameOfSheet, "A"+strconv.Itoa(row), task.TypeOfTask)
 		f.SetCellValue(nameOfSheet, "B"+strconv.Itoa(row), task.Card.Name)
 		f.SetCellValue(nameOfSheet, "C"+strconv.Itoa(row), statusOfTask)
 		f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), ConvertNameOfMember(task.Members.Username))
-		// f.SetCellValue(nameOfSheet, "E"+strconv.Itoa(row), task.ContentOfTask)
 		row += 1
 	}
 	f.SetActiveSheet(index)
