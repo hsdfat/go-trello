@@ -862,6 +862,22 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 	f.SetCellValue(nameOfSheet, "B1", "Card name")
 	f.SetCellValue(nameOfSheet, "C1", "Status")
 	f.SetCellValue(nameOfSheet, "D1", "Owner")
+
+	columnSizeTypeOfTaskErr := f.SetColWidth(nameOfSheet, "A", "A", 25)
+	if columnSizeTypeOfTaskErr != nil {
+		logger.Error(columnSizeTypeOfTaskErr)
+	}
+
+	columnSizeCardNameErr := f.SetColWidth(nameOfSheet, "B", "B", 85)
+	if columnSizeCardNameErr != nil {
+		logger.Error(columnSizeCardNameErr)
+	}
+
+	columnSizeStatusErr := f.SetColWidth(nameOfSheet, "C", "D", 25)
+	if columnSizeStatusErr != nil {
+		logger.Error(columnSizeStatusErr)
+	}
+
 	row := 2
 	for _, task := range tasks {
 		// logger.Info("************************")

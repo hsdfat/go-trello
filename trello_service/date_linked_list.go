@@ -377,7 +377,7 @@ func (list *DateLinkedList) GetMemberActionsSprint() []*MemberActions {
 
 func (list *DateLinkedList) ExportMemberActionsDailyToExcel() {
 	memberActions := list.GetMemberActionsDaily()
-	if memberActions != nil {
+	if memberActions == nil {
 		logger.Info("Not actions in this day: ", utils.TimeLocal(time.Now()))
 	}
 	SortMembersActionsDailyUseName(memberActions)
