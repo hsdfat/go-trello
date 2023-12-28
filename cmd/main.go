@@ -8,11 +8,11 @@ import (
 	"log"
 	"strings"
 	"time"
-
 	"github.com/spf13/viper"
 )
 
 func main() {
+	start := time.Now()
 	fmt.Println("Hello, World!")
 	binaryPath := "./config/"
 	logger.SetLogLevel(5)
@@ -57,6 +57,7 @@ func main() {
 	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()          //export data of tracking action in Daily
 	ins.DailyTrackingStats.ExportGroupActionsSprintToExcel(ins.Tasks) //export data of tracking action in Group sheet
 	trello_service.ExportDataOfMembersToExcel(ins)                    //Sheet: Data each member of team
-	trello_service.DeleteSheet("Sheet1")
-	//trello_service.SaveFile()
+	trello_service.DeleteSheet(utils.FileNeedDelete)
+	duration := time.Since(start)
+	logger.Info("Project took: ", duration)
 }

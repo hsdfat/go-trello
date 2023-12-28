@@ -5,41 +5,8 @@ import (
 	"go-trello/logger"
 	"go-trello/utils"
 	"strconv"
-	"time"
-
 	"github.com/xuri/excelize/v2"
 )
-
-func creatSheet(eachMemberData *MemberStats, time time.Time) {
-	nameOfSheet := eachMemberData.Name
-	//open file
-	f, err := excelize.OpenFile(utils.NameOfFile)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	defer func() {
-		// Close the spreadsheet.
-		if err := f.Close(); err != nil {
-			fmt.Println(err)
-		}
-	}()
-
-	// Create a new sheet.
-	index, err := f.NewSheet(nameOfSheet)
-	if err != nil {
-		logger.Errorln(err)
-	}
-
-	//get data to sheet of each member
-	f.SetCellValue(nameOfSheet, "A1", "Date")
-	f.SetCellValue(nameOfSheet, "B1", "Number Of Tasks")
-
-	f.SetActiveSheet(index)
-	if err := f.SaveAs(utils.NameOfFile); err != nil {
-		fmt.Println(err)
-	}
-}
 
 func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberOfSprint int, numberOfDayToCurrentDay int) {
 	//open file
@@ -93,12 +60,8 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		countDay += 1
 	}
 
-	logger.Info("#: ", len(dataDaily))
-
 	for i := 0; i < numberOfDayToCurrentDay*4; i += 4 {
 		//for i := 0; i < len(dataDaily); i += 4 {
-		// date := dataDaily[i]
-		logger.Info("number of day to current day: ", numberOfDayToCurrentDay)
 		remainingTasks := dataDaily[i+1]
 		remainingHours := dataDaily[i+2]
 		remainingHoursLinear := dataDaily[i+3]
@@ -135,23 +98,6 @@ func DrawLine(nameOfSheet string) {
 			Cell: "G6",
 			Type: "line",
 			Line: excelize.ShapeLine{Color: "FF3349", Width: &lineWidth},
-			//Fill: excelize.Fill{Color: []string{"8EB9FF"}},
-
-			// Paragraph: []excelize.RichTextRun{
-			//     {
-			//         Text: "Rectangle Shape",
-			//         Font: &excelize.Font{
-			//             Bold:      true,
-			//             Italic:    true,
-			//             Family:    "Times New Roman",
-			//             Size:      18,
-			//             Color:     "777777",
-			//             Underline: "sng",
-			//         },
-			//     },
-			// },
-			// Width:  180,
-			// Height: 40,
 		},
 	)
 	if err_add_shape != nil {
@@ -221,14 +167,6 @@ func DrawLineChart(name_sheet string) {
 			MajorGridLines: false,
 			MinorGridLines: true,
 			MajorUnit:      2,
-			//TickLabelSkip:  1,
-			//ReverseOrder:   false,
-			//Secondary:      false,
-			//Maximum:        nil,
-			//Minimum:        nil,
-			//Font:           excelize.Font{},
-			//LogBase:        0,
-			//NumFmt:         excelize.ChartNumFmt{},
 			Title: []excelize.RichTextRun{
 				{
 					Text: "Date",
@@ -241,14 +179,6 @@ func DrawLineChart(name_sheet string) {
 			MajorGridLines: false,
 			MinorGridLines: true,
 			MajorUnit:      5,
-			//TickLabelSkip:  1,
-			//ReverseOrder:   false,
-			//Secondary:      false,
-			//Maximum:        nil,
-			//Minimum:        nil,
-			//Font:           excelize.Font{},
-			//LogBase:        0,
-			//NumFmt:         excelize.ChartNumFmt{},
 			Title: []excelize.RichTextRun{
 				{
 					Text: "Remaining Tasks",
@@ -273,35 +203,6 @@ func DrawLineChart(name_sheet string) {
 		fmt.Println(err)
 		return
 	}
-
-	// lineWidth := 1.2
-	// err_add_shape := f.AddShape(name_sheet,
-	// &excelize.Shape{
-	//     Cell: "G6",
-	//     Type: "line",
-	//     Line: excelize.ShapeLine{Color: "FF3349", Width: &lineWidth},
-	//Fill: excelize.Fill{Color: []string{"8EB9FF"}},
-
-	// Paragraph: []excelize.RichTextRun{
-	//     {
-	//         Text: "Rectangle Shape",
-	//         Font: &excelize.Font{
-	//             Bold:      true,
-	//             Italic:    true,
-	//             Family:    "Times New Roman",
-	//             Size:      18,
-	//             Color:     "777777",
-	//             Underline: "sng",
-	//         },
-	//     },
-	// },
-	// Width:  180,
-	// Height: 40,
-	// },)
-	// if err_add_shape != nil {
-	// 	logger.Errorln(err_add_shape)
-	// }
-
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}
@@ -367,14 +268,6 @@ func DrawLineChartForTotal(name_sheet string) {
 			MajorGridLines: false,
 			MinorGridLines: true,
 			MajorUnit:      2,
-			//TickLabelSkip:  1,
-			//ReverseOrder:   false,
-			//Secondary:      false,
-			//Maximum:        nil,
-			//Minimum:        nil,
-			//Font:           excelize.Font{},
-			//LogBase:        0,
-			//NumFmt:         excelize.ChartNumFmt{},
 			Title: []excelize.RichTextRun{
 				{
 					Text: "Date",
@@ -387,14 +280,6 @@ func DrawLineChartForTotal(name_sheet string) {
 			MajorGridLines: false,
 			MinorGridLines: true,
 			MajorUnit:      5,
-			//TickLabelSkip:  1,
-			//ReverseOrder:   false,
-			//Secondary:      false,
-			//Maximum:        nil,
-			//Minimum:        nil,
-			//Font:           excelize.Font{},
-			//LogBase:        0,
-			//NumFmt:         excelize.ChartNumFmt{},
 			Title: []excelize.RichTextRun{
 				{
 					Text: "Remaining Tasks",
@@ -807,10 +692,6 @@ func SetMemberActionsSprint(nameOfSheet string, memberActions []*MemberActions) 
 			logger.Error(err)
 		}
 	}()
-	//columnSizeErr := f.SetColWidth(nameOfSheet, "J", "O", 15)
-	//if columnSizeErr != nil {
-	//	logger.Error(columnSizeErr)
-	//}
 
 	columnSizeTimeToNameErr := f.SetColWidth(nameOfSheet, "K", "P", 25)
 	if columnSizeTimeToNameErr != nil {
@@ -828,9 +709,7 @@ func SetMemberActionsSprint(nameOfSheet string, memberActions []*MemberActions) 
 	f.SetCellValue(nameOfSheet, "P1", "Action Types")
 	row := 2
 	for _, memberAction := range memberActions {
-		// logger.Info("--------------------------------")
 		// logger.Info("memberAction.TypeOfTask: ", memberAction.TypeOfTask)
-
 		f.SetCellValue(nameOfSheet, "K"+strconv.Itoa(row), memberAction.Time)
 		f.SetCellValue(nameOfSheet, "L"+strconv.Itoa(row), memberAction.ListBefore)
 		f.SetCellValue(nameOfSheet, "M"+strconv.Itoa(row), memberAction.ListAfter)
@@ -962,7 +841,6 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 		}
 
 		//set border
-		logger.Info("i: ", i)
 		if i == len(tasks)-1 {
 			break
 		}

@@ -14,6 +14,7 @@ var (
 	NameSMFTeam       = "SMF"
 	Group			  = "Group"
 	NameOfFile        = "SMF-Trello.xlsx"
+	FileNeedDelete    = "Sheet1"
 )
 
 // GetYValue returns the values a, b of Expected line function (y = ax + b)
@@ -56,7 +57,6 @@ func InSkipDays(skipDate []string, dateNeedCheck time.Time) bool {
 	for i := 0 ; i < len(skipDate); i++ {
 		//convert to date type
 		skipDateType, err := time.Parse("02-01-2006",skipDate[i])
-		logger.Info("skip date type: ", skipDateType)
 		if err != nil {
 			logger.Error(err)		
 		}

@@ -29,7 +29,6 @@ func (c *TrelloClient) GetCardsInBoard(id string) (cards []*trello.Card, err err
 		i += 1
 	}
 	number = i
-	logger.Info("Numbe: ", number)
 	return cards, err, number
 }
 

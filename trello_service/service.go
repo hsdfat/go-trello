@@ -72,7 +72,10 @@ func GetBoardInfo(id string, startDay, endDay time.Time) *TrelloClient {
 	// 	logger.Error(err)
 	// }
 	cards, err, number := instance.GetCardsInBoard(id)
-	logger.Info("@#: ", number)
+	if err != nil {
+		logger.Error(err)
+	}
+	logger.Info("Number of tasks: ", number)
 
 	tasks, err := instance.FilterTasks(cards)
 	if err != nil {
@@ -183,7 +186,7 @@ func ExportDataOfMembersToExcel(memberData *TrelloClient) {
 	}
 	startDayOfSprintInVn := utils.TimeLocal(startDayOfSprint)
 	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDayNew(startDayOfSprintInVn) // number of days from start day to current day
-
+	logger.Info("Nummber days from start sprint to current:", numberOfDayToCurrentDay)
 	for memberId, _ := range memberData.Members {
 		totalTasks := memberData.MemberStats[memberId].NTasks
 		totalHours := memberData.MemberStats[memberId].NHours
@@ -207,8 +210,6 @@ func ExportDataOfDailyToExcel(memberData *TrelloClient) {
 	}
 	startDayOfSprintInVn := utils.TimeLocal(startDayOfSprint)
 	numberOfDayToCurrentDay := memberData.DailyTrackingStats.CountNumberToCurrentDayNew(startDayOfSprintInVn) // number of days from start day to current day
-	logger.Info("CountNumberToCurrentDay2: ", memberData.DailyTrackingStats.CountNumberToCurrentDayNew(startDayOfSprintInVn))
-	logger.Info("Number of: ", numberOfDayToCurrentDay)
 	dataDailyList := memberData.DailyTrackingStats.calculateRemainingTasksDailyList(numberOfMembers, initTotalTime)
 	//SetCellValue return values of excel
 	SetCellValue(utils.MemberActionDaily, dataDailyList, int(memberData.DailyTrackingStats.head.stat.NTasks), numberOfSprint, numberOfDayToCurrentDay) // total tasts here

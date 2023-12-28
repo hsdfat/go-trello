@@ -137,7 +137,6 @@ func (list *DateLinkedList) CountNumberToCurrentDayNew(starDayOfSprintInVn time.
 			continue
 		}
 		if utils.IsDateEqual(&afterStartDay2, &currentTimeInVn) {
-			logger.Info("count:", count)
 			return count
 		}
 		count += 1
@@ -431,7 +430,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 	for current != nil {
 		stat := current.stat
 		if endOfDay(stat.Date).After(action.Date) {
-			logger.Info("action.Date need check: ", utils.TimeLocal(action.Date))
+			//logger.Info("action.Date need check: ", utils.TimeLocal(action.Date))
 			// if action.Data != nil && slices.Contains(skipDate, utils.TimeLocal(action.Date).String()) {
 			//if action.Data != nil && !utils.InSkipDays(skipDate, utils.TimeLocal(action.Date)) {
 			if action.Data != nil {
@@ -444,7 +443,7 @@ func (list *DateLinkedList) TrackingAction(task *Task, action *trello.Action, wg
 						atomic.AddInt32(&stat.NDoneHours, task.Hour)
 					}
 				}
-				logger.Info("Action Date: ", action.Date)
+				//logger.Info("Action Date: ", action.Date)
 				if action.Data.ListAfter != nil {
 					if action.Data.ListAfter.ID == ins.DoneList {
 						taskDone = true
