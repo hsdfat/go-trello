@@ -279,6 +279,15 @@ func GetStatusOfTaskInGroupSheet(tasks *Task) string {
 	} else if tasks.IsInProgress {
 		return "Inprogress"
 	} else {
-		return "Sprint Backlog or Pending"
+		return "Sprint Backlog"
 	}
+}
+
+// IsSameTypeOfTask returns true if two tasks are same "Type of task"
+func IsSameTypeOfTask(t1 *Task, t2 *Task) bool {
+	// if t1.TypeOfTask == t2.TypeOfTask {
+	// 	return true
+	// }
+	// return false
+	return t1.TypeOfTask == t2.TypeOfTask
 }

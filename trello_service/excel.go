@@ -783,19 +783,13 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 	f.SetCellValue(memberActionDaily, "T10", "Action Types")
 	row := 11
 	for _, memberAction := range memberActions {
-		// logger.Info("**************************************************")
-		// logger.Info(memberAction.Time)
-		// logger.Info(memberAction.ListBefore)
-		// logger.Info(memberAction.ListAfter)
-		// logger.Info(memberAction.NameOfMember)
-		// logger.Info(memberAction.ContentOfTask)
-		// logger.Info(memberAction.ActionTypes)
 		f.SetCellValue(memberActionDaily, "O"+strconv.Itoa(row), memberAction.Time)
 		f.SetCellValue(memberActionDaily, "P"+strconv.Itoa(row), memberAction.ListBefore)
 		f.SetCellValue(memberActionDaily, "Q"+strconv.Itoa(row), memberAction.ListAfter)
 		f.SetCellValue(memberActionDaily, "R"+strconv.Itoa(row), memberAction.NameOfMember)
 		f.SetCellValue(memberActionDaily, "S"+strconv.Itoa(row), memberAction.ContentOfTask)
 		f.SetCellValue(memberActionDaily, "T"+strconv.Itoa(row), memberAction.ActionTypes)
+		
 		row += 1
 	}
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
@@ -885,8 +879,34 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 		logger.Error(columnSizeStatusErr)
 	}
 
+	//set color	of First row
+	firstRowInGroupSheetFormat, err := f.NewConditionalStyle(
+		&excelize.Style{
+			Fill: excelize.Fill{
+				Type: "pattern", Color: []string{"4CBBD9"}, Pattern: 1,
+			},
+		},
+	)
+	if err != nil {
+		logger.Error(err)
+	}
+	errSetFormat := f.SetConditionalFormat(nameOfSheet, "A1"+":"+"D1",
+		[]excelize.ConditionalFormatOptions{
+			{
+				Type:     "cell",
+				Criteria: ">",
+				Format:   firstRowInGroupSheetFormat,
+				Value:    "6",
+			},
+		},
+	)
+	if errSetFormat != nil {
+		logger.Error(errSetFormat)
+	}
+
+	//set color for Done tasks and Inprogress tasks
 	row := 2
-	for _, task := range tasks {
+	for i, task := range tasks {
 		statusOfTask := GetStatusOfTaskInGroupSheet(task)
 		// set color for Done tasks
 		if statusOfTask == "Done" {
@@ -900,7 +920,7 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 			if err != nil {
 				logger.Error(err)
 			}
-			err = f.SetConditionalFormat(nameOfSheet, "A"+strconv.Itoa(row)+":"+"D"+strconv.Itoa(row),
+			errSetFormat := f.SetConditionalFormat(nameOfSheet, "A"+strconv.Itoa(row)+":"+"D"+strconv.Itoa(row),
 				[]excelize.ConditionalFormatOptions{
 					{
 						Type:     "cell",
@@ -910,6 +930,9 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 					},
 				},
 			)
+			if errSetFormat != nil {
+				logger.Error(errSetFormat)
+			}
 		}
 
 		if statusOfTask == "Inprogress" {
@@ -923,7 +946,7 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 			if err != nil {
 				logger.Error(err)
 			}
-			err = f.SetConditionalFormat(nameOfSheet, "A"+strconv.Itoa(row)+":"+"D"+strconv.Itoa(row),
+			errSetFormat := f.SetConditionalFormat(nameOfSheet, "A"+strconv.Itoa(row)+":"+"D"+strconv.Itoa(row),
 				[]excelize.ConditionalFormatOptions{
 					{
 						Type:     "cell",
@@ -933,6 +956,43 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 					},
 				},
 			)
+			if errSetFormat != nil {
+				logger.Error(errSetFormat)
+			}	
+		}
+
+		//set border
+		logger.Info("i: ", i)
+		if i == len(tasks)-1 {
+			break
+		}
+		if !IsSameTypeOfTask(tasks[i], tasks[i+1]) {
+			borderOfEachGroup, err := f.NewConditionalStyle(
+				&excelize.Style{
+					Border: []excelize.Border {
+						{
+							Type: "bottom",
+							Style: 2, //"Continuous"
+						},
+					},
+				},
+			)
+			if err != nil {
+				logger.Error(err)
+			}
+			errSetFormat := f.SetConditionalFormat(nameOfSheet, "A"+strconv.Itoa(row)+":"+"D"+strconv.Itoa(row),
+				[]excelize.ConditionalFormatOptions{
+					{
+						Type:     "cell",
+						Criteria: ">",
+						Format:   borderOfEachGroup,
+						Value:    "6",
+					},
+				},
+			)
+			if errSetFormat != nil {
+				logger.Error(errSetFormat)
+			}
 		}
 
 		f.SetCellValue(nameOfSheet, "A"+strconv.Itoa(row), task.TypeOfTask)
@@ -941,6 +1001,7 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 		f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), ConvertNameOfMember(task.Members.Username))
 		row += 1
 	}
+
 	f.SetActiveSheet(index)
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		logger.Error(err)
