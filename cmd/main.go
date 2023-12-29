@@ -8,6 +8,9 @@ import (
 	"log"
 	"strings"
 	"time"
+
+	"github.com/k0kubun/go-ansi"
+	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/viper"
 )
 
@@ -58,6 +61,29 @@ func main() {
 	ins.DailyTrackingStats.ExportGroupActionsSprintToExcel(ins.Tasks) //export data of tracking action in Group sheet
 	trello_service.ExportDataOfMembersToExcel(ins)                    //Sheet: Data each member of team
 	trello_service.DeleteSheet(utils.FileNeedDelete)
+
+	//basic progress bar idea
 	duration := time.Since(start)
-	logger.Info("Project took: ", duration)
+	durationInt := int(duration / time.Second)
+	logger.Info("Project took: ", durationInt)
+	//bar := progressbar.Default(int64(durationInt))
+	bar := progressbar.NewOptions(durationInt,
+		progressbar.OptionSetWriter(ansi.NewAnsiStdout()),
+		progressbar.OptionEnableColorCodes(true),
+		progressbar.OptionShowBytes(true),
+		progressbar.OptionSetWidth(15),
+		// progressbar.OptionSetDescription("[cyan][1/3][reset] Processing ..."),
+		progressbar.OptionSetDescription("Processing ..."),
+		progressbar.OptionSetTheme(progressbar.Theme{
+			Saucer:        "[green]=[reset]",
+			SaucerHead:    "[green]>[reset]",
+			SaucerPadding: " ",
+			BarStart:      "[",
+			BarEnd:        "]",
+		}))
+
+	for i := 0; i < durationInt; i++ {
+		bar.Add(1)
+		time.Sleep(100 * time.Millisecond)
+	}
 }

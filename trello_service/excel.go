@@ -839,9 +839,15 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 				logger.Error(errSetFormat)
 			}	
 		}
-
 		//set border
+		// logger.Info("i: ", i)
+		// logger.Info("len(task): ", len(tasks))
 		if i == len(tasks)-1 {
+			//show last task
+			f.SetCellValue(nameOfSheet, "A"+strconv.Itoa(row), tasks[i].TypeOfTask)
+			f.SetCellValue(nameOfSheet, "B"+strconv.Itoa(row), tasks[i].Card.Name)
+			f.SetCellValue(nameOfSheet, "C"+strconv.Itoa(row), GetStatusOfTaskInGroupSheet(tasks[i]))
+			f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), ConvertNameOfMember(tasks[i].Members.Username))
 			break
 		}
 		if !IsSameTypeOfTask(tasks[i], tasks[i+1]) {
@@ -872,7 +878,6 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 				logger.Error(errSetFormat)
 			}
 		}
-
 		f.SetCellValue(nameOfSheet, "A"+strconv.Itoa(row), task.TypeOfTask)
 		f.SetCellValue(nameOfSheet, "B"+strconv.Itoa(row), task.Card.Name)
 		f.SetCellValue(nameOfSheet, "C"+strconv.Itoa(row), statusOfTask)
