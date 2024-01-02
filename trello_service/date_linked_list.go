@@ -193,6 +193,11 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 	var j int = 65
 	var countDay int = 1
 
+	if numberOfDayToCurrentDay > numberOfSprint {
+		logger.Error("Current day is out of sprint!")
+		numberOfDayToCurrentDay = numberOfSprint
+	}
+
 	//get name and expected line to sheet of each member
 	for current != nil {
 		stat := current.stat
@@ -327,6 +332,7 @@ func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	today := utils.TimeLocal(time.Now())
 
 	yesterday := today.AddDate(0, 0, -1)
+	logger.Info("yesterday-1: ", yesterday)
 
 	weekday := utils.TimeLocal(time.Now()).Weekday()
 	// if is Monday
@@ -334,10 +340,23 @@ func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 		yesterday = today.AddDate(0, 0, -3)
 	}
 
+	//need check if before weekday is skip date (Ex: 2-1-2024)
+
+	// if weekday == 2 {
+	// 	yesterday = today.AddDate(0, 0, -4)
+	// }
+
 	// if yesterday is skipdate
 	skipDate := viper.GetStringSlice("trello.skipDays")
+	logger.Info("yesterday0: ", yesterday)
+
+	if yesterday.Weekday() == 2 && utils.InSkipDays(skipDate, yesterday){
+		yesterday = yesterday.AddDate(0, 0, -3)
+	}
+
 	for utils.InSkipDays(skipDate, yesterday) {
 		yesterday = yesterday.AddDate(0, 0, -1)
+		logger.Info("yesterday1: ", yesterday)
 	}
 
 	if list.head == nil {

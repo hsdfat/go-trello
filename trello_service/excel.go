@@ -59,7 +59,13 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		j += 1
 		countDay += 1
 	}
+	
+	if numberOfDayToCurrentDay > numberOfSprint {
+		logger.Error("Out of sprint!")
+		numberOfDayToCurrentDay = numberOfSprint
+	}
 
+	//for i := 0; i < numberOfDayToCurrentDay*4-4; i += 4 {
 	for i := 0; i < numberOfDayToCurrentDay*4; i += 4 {
 		//for i := 0; i < len(dataDaily); i += 4 {
 		remainingTasks := dataDaily[i+1]
