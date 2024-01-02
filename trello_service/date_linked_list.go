@@ -330,35 +330,23 @@ func (list *DateLinkedList) PrintMemberActions() {
 func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	var memberActions []*MemberActions
 	today := utils.TimeLocal(time.Now())
-
 	yesterday := today.AddDate(0, 0, -1)
 	logger.Info("yesterday-1: ", yesterday)
-
 	weekday := utils.TimeLocal(time.Now()).Weekday()
 	// if is Monday
 	if weekday == 1 {
 		yesterday = today.AddDate(0, 0, -3)
 	}
-
-	//need check if before weekday is skip date (Ex: 2-1-2024)
-
-	// if weekday == 2 {
-	// 	yesterday = today.AddDate(0, 0, -4)
-	// }
-
-	// if yesterday is skipdate
 	skipDate := viper.GetStringSlice("trello.skipDays")
-	logger.Info("yesterday0: ", yesterday)
-
-	if yesterday.Weekday() == 2 && utils.InSkipDays(skipDate, yesterday){
+	//need check if before weekday is skip date (Ex: 2-1-2024: Tuesday)
+	if yesterday.Weekday() == 1 && utils.InSkipDays(skipDate, yesterday){
 		yesterday = yesterday.AddDate(0, 0, -3)
 	}
-
+	// if yesterday is skipdate
 	for utils.InSkipDays(skipDate, yesterday) {
 		yesterday = yesterday.AddDate(0, 0, -1)
 		logger.Info("yesterday1: ", yesterday)
 	}
-
 	if list.head == nil {
 		logger.Debug("List is empty")
 	}
