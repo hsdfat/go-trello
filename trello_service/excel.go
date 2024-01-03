@@ -2,10 +2,10 @@ package trello_service
 
 import (
 	"fmt"
+	"github.com/xuri/excelize/v2"
 	"go-trello/logger"
 	"go-trello/utils"
 	"strconv"
-	"github.com/xuri/excelize/v2"
 )
 
 func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberOfSprint int, numberOfDayToCurrentDay int) {
@@ -59,7 +59,7 @@ func SetCellValue(nameOfSheet string, dataDaily []string, totalTask int, numberO
 		j += 1
 		countDay += 1
 	}
-	
+
 	if numberOfDayToCurrentDay > numberOfSprint {
 		logger.Error("Out of sprint!")
 		numberOfDayToCurrentDay = numberOfSprint
@@ -114,7 +114,7 @@ func DrawLine(nameOfSheet string) {
 	}
 }
 
-func DrawLineChart(name_sheet string) {
+func DrawLineChart(name_sheet string, numberOfSprint int) {
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
@@ -127,7 +127,7 @@ func DrawLineChart(name_sheet string) {
 	}()
 
 	rowHead := string(int('B'))
-	rowEnd := string(int('B') + 11)
+	rowEnd := string(int('B') + numberOfSprint)
 	if err := f.AddChart(name_sheet, "A10", &excelize.Chart{
 		Type: excelize.Line,
 		Series: []excelize.ChartSeries{
@@ -316,7 +316,7 @@ func DrawLineChartForTotal(name_sheet string) {
 	}
 }
 
-func DrawDailyLineChart(name_sheet string) {
+func DrawDailyLineChart(name_sheet string, numberOfSprint int) {
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
@@ -329,7 +329,8 @@ func DrawDailyLineChart(name_sheet string) {
 	}()
 
 	rowHead := string(int('B'))
-	rowEnd := string(int('B') + 11)
+	//rowEnd := string(int('B') + 11)
+	rowEnd := string(int('B') + numberOfSprint)
 	if err := f.AddChart(name_sheet, "A10", &excelize.Chart{
 		Type: excelize.Line,
 		Series: []excelize.ChartSeries{
@@ -680,7 +681,7 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 		f.SetCellValue(memberActionDaily, "R"+strconv.Itoa(row), memberAction.NameOfMember)
 		f.SetCellValue(memberActionDaily, "S"+strconv.Itoa(row), memberAction.ContentOfTask)
 		f.SetCellValue(memberActionDaily, "T"+strconv.Itoa(row), memberAction.ActionTypes)
-		
+
 		row += 1
 	}
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
@@ -843,7 +844,7 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 			)
 			if errSetFormat != nil {
 				logger.Error(errSetFormat)
-			}	
+			}
 		}
 		//set border
 		// logger.Info("i: ", i)
@@ -859,9 +860,9 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 		if !IsSameTypeOfTask(tasks[i], tasks[i+1]) {
 			borderOfEachGroup, err := f.NewConditionalStyle(
 				&excelize.Style{
-					Border: []excelize.Border {
+					Border: []excelize.Border{
 						{
-							Type: "bottom",
+							Type:  "bottom",
 							Style: 2, //"Continuous"
 						},
 					},
