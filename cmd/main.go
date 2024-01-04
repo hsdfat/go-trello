@@ -53,13 +53,13 @@ func main() {
 	trello_service.ConvertNameOfMembers(ins)
 	trello_service.ExportTotalMemberToCsv(ins) //export data of SMF Sheet
 	trello_service.DrawPieChartSMF(utils.NameSMFTeam)
-	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()                                              //export data of tracking action in SMF
-	trello_service.ExportDataOfDailyToExcel(ins)                                                           //data of Daily Sheet
-	trello_service.DrawDailyLineChart(utils.MemberActionDaily, ins.DailyTrackingStats.CountDaysInSprint()) //draw line chart in sheet daily
-	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily)                                       //draw column chart in Daily
-	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()                                               //export data of tracking action in Daily
-	ins.DailyTrackingStats.ExportGroupActionsSprintToExcel(ins.Tasks)                                      //export data of tracking action in Group sheet
-	trello_service.ExportDataOfMembersToExcel(ins)                                                         //Sheet: Data each member of team
+	ins.DailyTrackingStats.ExportMemberActionsSprintToExcel()                                                    //export data of tracking action in SMF
+	trello_service.ExportDataOfDailyToExcel(ins)                                                                 //data of Daily Sheet
+	trello_service.DrawDailyLineChart(utils.MemberActionDaily, ins.DailyTrackingStats.CountDaysInSprint())       //draw line chart in sheet daily
+	trello_service.DrawClusteredColumnChart(utils.MemberActionDaily, ins.DailyTrackingStats.CountDaysInSprint()) //draw column chart in Daily
+	ins.DailyTrackingStats.ExportMemberActionsDailyToExcel()                                                     //export data of tracking action in Daily
+	ins.DailyTrackingStats.ExportGroupActionsSprintToExcel(ins.Tasks)                                            //export data of tracking action in Group sheet
+	trello_service.ExportDataOfMembersToExcel(ins)                                                               //Sheet: Data each member of team
 	trello_service.DeleteSheet(utils.FileNeedDelete)
 
 	//basic progress bar idea

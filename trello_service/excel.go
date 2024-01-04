@@ -200,7 +200,7 @@ func DrawLineChart(name_sheet string, numberOfSprint int) {
 			ShowVal:         true,
 		},
 		Dimension: excelize.ChartDimension{
-			Width:  650,
+			Width:  700,
 			Height: 500,
 		},
 		ShowBlanksAs: "span",
@@ -519,7 +519,7 @@ func DrawRemainingHours(name_sheet string) {
 	}
 }
 
-func DrawClusteredColumnChart(name_sheet string) {
+func DrawClusteredColumnChart(name_sheet string, numberOfSprint int) {
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Errorln(err)
@@ -532,7 +532,7 @@ func DrawClusteredColumnChart(name_sheet string) {
 	}()
 
 	rowHead := string(int('B'))
-	rowEnd := string(int('B') + 11)
+	rowEnd := string(int('B') + numberOfSprint)
 	if err := f.AddChart(name_sheet, "G10", &excelize.Chart{
 		Type: excelize.Col,
 		Series: []excelize.ChartSeries{
