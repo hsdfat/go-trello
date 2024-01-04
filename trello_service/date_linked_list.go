@@ -2,14 +2,14 @@ package trello_service
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
+	"github.com/xuri/excelize/v2"
 	"go-trello/logger"
 	"go-trello/utils"
 	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
-	"github.com/spf13/viper"
-	"github.com/xuri/excelize/v2"
 
 	"github.com/adlio/trello"
 )
@@ -71,6 +71,8 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList(numberOfMembers int
 		logger.Debugln("List is empty")
 		return nil
 	}
+	isSprintMeetingMorning := viper.GetString("sprintMeeting.isInTheMorning")
+	var coefficient int = 8
 	current := list.head
 	for current != nil {
 		stat := current.stat
@@ -85,7 +87,13 @@ func (list *DateLinkedList) calculateRemainingTasksDailyList(numberOfMembers int
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingTasks)))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(int(remainingHours)))
 		remainingTasksData = append(remainingTasksData, strconv.Itoa(linear_hours))
-		linear_hours -= 8 * numberOfMembers
+		if isSprintMeetingMorning == "true" {
+			coefficient = 4
+			isSprintMeetingMorning = "false"
+		} else {
+			coefficient = 8
+		}
+		linear_hours -= coefficient * numberOfMembers
 		current = current.next
 	}
 	return remainingTasksData
@@ -165,9 +173,10 @@ func (list *DateLinkedList) CountNumberToCurrentDay(starDayOfSprintInVn time.Tim
 	return count
 }
 
-func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask int32, numberOfSprint int, totalHours int32, numberOfDayToCurrentDay int) {
+func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask int32, numberOfSprint int, totalHours int32, linearHourOfEachMember int, numberOfDayToCurrentDay int) {
 	numberOfTasksNeedDone := totalTask
 	numberOfRemainingHours := totalHours
+	remainingHourLinear := linearHourOfEachMember
 	number := 1 // number to check with numberOfDaysToCurrentDay
 
 	//export to excel
@@ -233,6 +242,9 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		current = current.next
 	}
 
+	isSprintMeetingMorning := viper.GetString("sprintMeeting.isInTheMorning")
+	var coefficient int = 8
+
 	for currentReal != nil { //pointer to check real time
 		stat := currentReal.stat
 		if stat == nil {
@@ -241,9 +253,13 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		}
 		memberStat, ok := stat.MemberStats[id]
 		//Get hour of each member
-		remainingHourLinear := utils.FindHourOfEachMember(memberStat.Name)
-		remainingHourLinear = remainingHourLinear - 8*(number-1)
-
+		//remainingHourLinear := utils.FindHourOfEachMember(memberStat.Name)
+		if isSprintMeetingMorning == "true" || memberStat.Name == "dongnt18" {
+			coefficient = 4
+			isSprintMeetingMorning = "false"
+		} else {
+			coefficient = 8
+		}
 		if !ok {
 			currentReal = currentReal.next
 			continue
@@ -255,7 +271,7 @@ func (list *DateLinkedList) ExportDataOfEachMemberToExcel(id string, totalTask i
 		f.SetCellValue(memberStat.Name, string((j+2))+"2", numberOfTasksNeedDone) //remaining tasks
 		f.SetCellValue(memberStat.Name, string((j+2))+"4", numberOfRemainingHours)
 		f.SetCellValue(memberStat.Name, string((j+2))+"5", remainingHourLinear)
-		//remainingHourLinear -= 8
+		remainingHourLinear -= coefficient
 
 		//set size of coloum
 		err_size_column := f.SetColWidth(memberStat.Name, "A", "L", 15)
@@ -339,7 +355,7 @@ func (list *DateLinkedList) GetMemberActionsDaily() []*MemberActions {
 	}
 	skipDate := viper.GetStringSlice("trello.skipDays")
 	//need check if before weekday is skip date (Ex: 2-1-2024: Tuesday)
-	if yesterday.Weekday() == 1 && utils.InSkipDays(skipDate, yesterday){
+	if yesterday.Weekday() == 1 && utils.InSkipDays(skipDate, yesterday) {
 		yesterday = yesterday.AddDate(0, 0, -3)
 	}
 	// if yesterday is skipdate
