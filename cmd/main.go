@@ -6,6 +6,7 @@ import (
 	"go-trello/trello_service"
 	"go-trello/utils"
 	"log"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,6 +14,14 @@ import (
 	"github.com/schollz/progressbar/v3"
 	"github.com/spf13/viper"
 )
+
+func init() {
+	logger.Info("Update")
+	path := "go-trello\\report"
+	currentTime := time.Now()
+	time := fmt.Sprintln("YYYY-MM-DD hh:mm:ss : ", currentTime.Format("2017-09-07 17:06:06"))
+	*utils.PointerNameOfFile = path + "Sprint" + strconv.Itoa(utils.Sprint) + "\\" + "SMF-Trello" + time + ".xlsx"
+}
 
 func main() {
 	start := time.Now()
