@@ -171,6 +171,7 @@ func ExportTotalMemberToCsv(memberData *TrelloClient) error {
 
 	f.SetActiveSheet(index)
 	// Save spreadsheet by the given path.
+	logger.Info("utils.NameOfFile!: ", utils.NameOfFile)
 	if err := f.SaveAs(utils.NameOfFile); err != nil {
 		fmt.Println(err)
 	}

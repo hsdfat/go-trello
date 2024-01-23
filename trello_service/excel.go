@@ -607,6 +607,7 @@ func DrawClusteredColumnChart(name_sheet string, numberOfSprint int) {
 }
 
 func DrawPieChartSMF(nameSheet string) {
+	logger.Info("utils.NameOfFile$:", utils.NameOfFile)
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Error(err)
@@ -690,6 +691,7 @@ func SetMemberActionsDaily(memberActionDaily string, memberActions []*MemberActi
 }
 
 func SetMemberActionsSprint(nameOfSheet string, memberActions []*MemberActions) {
+	logger.Info("utils.NameOfFile$$:", utils.NameOfFile)
 	f, err := excelize.OpenFile(utils.NameOfFile)
 	if err != nil {
 		logger.Error(err)
