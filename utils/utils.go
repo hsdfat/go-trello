@@ -13,9 +13,10 @@ var (
 	MemberActionDaily = "Daily"
 	NameSMFTeam       = "SMF"
 	Group             = "Group"
-	NameOfFile        = "SMF-Trello.xlsx"
+	NameOfFile        = ""
 	FileNeedDelete    = "Sheet1"
 	Sprint            = 14
+	DirSaveFile       = "/Desktop/"
 )
 
 var PointerNameOfFile *string = &NameOfFile

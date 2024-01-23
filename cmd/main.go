@@ -6,6 +6,8 @@ import (
 	"go-trello/trello_service"
 	"go-trello/utils"
 	"log"
+	"os"
+	"os/user"
 	"strconv"
 	"strings"
 	"time"
@@ -17,10 +19,21 @@ import (
 
 func init() {
 	logger.Info("Update")
-	path := "go-trello\\report"
 	currentTime := time.Now()
-	time := fmt.Sprintln("YYYY-MM-DD hh:mm:ss : ", currentTime.Format("2017-09-07 17:06:06"))
-	*utils.PointerNameOfFile = path + "Sprint" + strconv.Itoa(utils.Sprint) + "\\" + "SMF-Trello" + time + ".xlsx"
+	timeFormat := fmt.Sprint(currentTime.Format("02-01-2006_15-04-05"))
+	currentDay := fmt.Sprint(currentTime.Format("02-01-2006"))
+	user, err := user.Current()
+	if err != nil {
+		logger.Error(err)
+	}
+	desktop := user.HomeDir + utils.DirSaveFile
+	//creat folder to save file
+	err = os.MkdirAll(desktop+"Report_Trello/Sprint"+strconv.Itoa(utils.Sprint)+"/"+currentDay, os.ModePerm)
+	if err != nil {
+		logger.Errorln(err)
+	}
+	*utils.PointerNameOfFile = desktop + "Report_Trello/Sprint" + strconv.Itoa(utils.Sprint) + "/" + currentDay + "/" + "SMF-Trello_" + timeFormat + ".xlsx"
+	logger.Info("utils NameOfFile: ", utils.NameOfFile)
 }
 
 func main() {
