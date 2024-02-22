@@ -8,17 +8,17 @@ import (
 )
 
 var nameOfMembers = map[string]string{
-    "nguyenanhtuan010598": "tuanna137",
-    "phatlechi": "phatlc",
-    "bobochacha07": "binhtd7",
-	"kuroka1":"dongnt18",
-	"dokieuminhdkm": "minhdk",
-	"hiunguyn484":"hieund152",
-	"namnguyen08489158":"namnp16",
-	"thinhnx5": "thinhnx5",
-	"xuanbachtrng": "bachtx",
-	"hungto18":"hungtq40",
-	"maingoctrinh":"trinhmn",
+	"nguyenanhtuan010598": "tuanna137",
+	"phatlechi":           "phatlc",
+	"bobochacha07":        "binhtd7",
+	"kuroka1":             "dongnt18",
+	"dokieuminhdkm":       "minhdk",
+	"hiunguyn484":         "hieund152",
+	"namnguyen08489158":   "namnp16",
+	"thinhnx5":            "thinhnx5",
+	"xuanbachtrng":        "bachtx",
+	"hungto18":            "hungtq40",
+	"maingoctrinh":        "trinhmn",
 }
 
 // GetMembersInBoard returns a list of members of the board
@@ -103,26 +103,25 @@ func ConvertNameOfMembers(memberData *TrelloClient) {
 			nameEachMemberInCompany := memberData.MemberStats[memberId].Name
 			if nameMemberInEmail == nameEachMemberInCompany {
 				memberData.MemberStats[memberId].Name = nameMemberInCompany
-			}	
+			}
 		}
 	}
 }
-
 
 func ConvertNameOfMembersInLinkedList(memberStat *MemberStats) {
 	for nameMemberInEmail, nameMemberInCompany := range nameOfMembers {
 		if nameMemberInEmail == memberStat.Name {
 			memberStat.Name = nameMemberInCompany
-		}	
+		}
 	}
 }
 
 func ConvertNameOfMember(nameNeedConvert string) string {
-	var result string
+	var result string = nameNeedConvert
 	for nameMemberInEmail, nameMemberInCompany := range nameOfMembers {
 		if nameMemberInEmail == nameNeedConvert {
 			result = nameMemberInCompany
-		}	
+		}
 	}
 	return result
 }

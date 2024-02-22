@@ -890,7 +890,11 @@ func SetGroupActionsSprint(nameOfSheet string, tasks []*Task) {
 		f.SetCellValue(nameOfSheet, "A"+strconv.Itoa(row), task.TypeOfTask)
 		f.SetCellValue(nameOfSheet, "B"+strconv.Itoa(row), task.Card.Name)
 		f.SetCellValue(nameOfSheet, "C"+strconv.Itoa(row), statusOfTask)
-		f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), ConvertNameOfMember(task.Members.Username))
+		if task.Members == nil {
+			f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), ConvertNameOfMember("None"))
+		} else {
+			f.SetCellValue(nameOfSheet, "D"+strconv.Itoa(row), ConvertNameOfMember(task.Members.Username))
+		}
 		row += 1
 	}
 

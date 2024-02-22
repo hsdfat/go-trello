@@ -15,8 +15,8 @@ var (
 	Group             = "Group"
 	NameOfFile        = ""
 	FileNeedDelete    = "Sheet1"
-	Sprint            = 14
-	DirSaveFile       = "/Desktop/"
+	//Sprint            = 14
+	//DirSaveFile       = "/Desktop/"
 )
 
 var PointerNameOfFile *string = &NameOfFile

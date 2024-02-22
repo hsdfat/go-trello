@@ -26,13 +26,20 @@ func init() {
 	if err != nil {
 		logger.Error(err)
 	}
-	desktop := user.HomeDir + utils.DirSaveFile
+	dirSaveFile := viper.GetString("desktopConfig.dirSaveFile")
+	logger.Info("dirSaveFile: ", dirSaveFile)
+	logger.Info("Home Dir: ", user.HomeDir)
+	dirSaveFile = "/Desktop/"
+	desktop := user.HomeDir + dirSaveFile
+	numberSprint := viper.GetInt("desktopConfig.sprint")
+	logger.Info("desktopConfig.sprint: ", numberSprint)
+	numberSprint = 15
 	//creat folder to save file
-	err = os.MkdirAll(desktop+"Report_Trello/Sprint"+strconv.Itoa(utils.Sprint)+"/"+currentDay, os.ModePerm)
+	err = os.MkdirAll(desktop+"Report_Trello/Sprint"+strconv.Itoa(numberSprint)+"/"+currentDay, os.ModePerm)
 	if err != nil {
 		logger.Errorln(err)
 	}
-	*utils.PointerNameOfFile = desktop + "Report_Trello/Sprint" + strconv.Itoa(utils.Sprint) + "/" + currentDay + "/" + "SMF-Trello_" + timeFormat + ".xlsx"
+	*utils.PointerNameOfFile = desktop + "Report_Trello/Sprint" + strconv.Itoa(numberSprint) + "/" + currentDay + "/" + "SMF-Trello_" + timeFormat + ".xlsx"
 	logger.Info("utils NameOfFile: ", utils.NameOfFile)
 }
 
@@ -69,6 +76,12 @@ func main() {
 	if err != nil {
 		log.Panicln("Cannot parse end day: ", err)
 	}
+
+	dirSaveFile := viper.GetString("desktopConfig.dirSaveFile")
+	logger.Info("dirSaveFile2: ", dirSaveFile)
+
+	numberSprint := viper.GetInt("desktopConfig.sprint")
+	logger.Info("desktopConfig.sprint2: ", numberSprint)
 
 	ins := trello_service.GetBoardInfo(boardId, startDayTime, endDayTime)
 	//ins.DailyTrackingStats.PrintMemberActions()
